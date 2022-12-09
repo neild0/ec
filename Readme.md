@@ -35,6 +35,11 @@ If you’ve already cloned the repo and did not clone the submodules, run:
 ```
 git submodule update --recursive --init
 ```
+### Setup Python environment
+```
+conda env create -f environment.yml
+conda activate dreamcoder_env
+```
 
 ### Running using Singularity
 
