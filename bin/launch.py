@@ -10,15 +10,16 @@ ZONE = None
 ## Azure configuration flags.
 # Approximate conversion between similar VMs on Amazon and Azure.
 AMAZON_TO_AZURE_SIZING = {
-    "n1-standard-64" : "Standard_E64_v3",
-    "n1-highmem-64" : "Standard_E64_v4",
-    "n1-highmem-96" : "Standard_E64_v4",
-    "n1-standard-20" : "Standard_E16_v3"
+    "n1-standard-64": "Standard_E64_v3",
+    "n1-highmem-64": "Standard_E64_v4",
+    "n1-highmem-96": "Standard_E64_v4",
+    "n1-standard-20": "Standard_E16_v3"
 }
 AZURE_DEFAULT_RESOURCE_GROUP = "ec2_resource_group_0"
 AZURE_DEFAULT_REGION = "eastus"
 AZURE_DEFAULT_BASE_IMAGE = "/subscriptions/655f1464-5d1f-48ef-9ed3-dca83e60bdd5/resourceGroups/ec2_resource_group_0/providers/Microsoft.Compute/galleries/cocosci/images/ec_base_image_1"
 AZURE_DEFAULT_USERNAME = "azureuser"
+
 
 def user():
     import getpass
@@ -29,33 +30,36 @@ def branch():
     return subprocess.check_output(
         ['git', 'rev-parse', '--abbrev-ref', 'HEAD']).decode("utf-8").strip()
 
-def launchAzureCloud(size,name,region):
+
+def launchAzureCloud(size, name, region):
     """
     Provisions an Azure VM. Requires Azure CLI: https://docs.microsoft.com/en-us/cli/azure/install-azure-cli. Users must be added to the Computational Cognitive Science Azure account with login credentials.
     > az account set --subscription "Computational Cognitive Science Lab" to use the default subscription.
     """
     print("#######Launching on Azure cloud...")
     if size in AMAZON_TO_AZURE_SIZING: size = AMAZON_TO_AZURE_SIZING[size]
-    name = name.replace('_','-').replace('.','-').lower()
+    name = name.replace('_', '-').replace('.', '-').lower()
     azure_command = f"az vm create --size {size} --name {name} --generate-ssh-keys --data-disk-sizes-gb 64 --location {region} --image {AZURE_DEFAULT_BASE_IMAGE} --resource-group {AZURE_DEFAULT_RESOURCE_GROUP}"
-    
+
     output = subprocess.check_output(["/bin/bash", "-c", azure_command])
     output = json.loads(output)
     ip_address = output['publicIpAddress']
     print(f"Launched to: {name} | {AZURE_DEFAULT_USERNAME}@{ip_address}")
     return name, ip_address
-     
+
 
 def launchGoogleCloud(size, name):
-    name = name.replace('_','-').replace('.','-').lower()
-    os.system(f"gcloud compute --project tenenbaumlab disks create {name} --size 30 --zone us-east1-b --source-snapshot dreamcoder-jan26 --type pd-standard")
+    name = name.replace('_', '-').replace('.', '-').lower()
+    os.system(
+        f"gcloud compute --project tenenbaumlab disks create {name} --size 30 --zone us-east1-b --source-snapshot dreamcoder-jan26 --type pd-standard")
     output = \
         subprocess.check_output(["/bin/bash", "-c",
-                             f"gcloud compute --project=tenenbaumlab instances create {name} --zone=us-east1-b --machine-type={size} --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=150557817012-compute@developer.gserviceaccount.com --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --disk=name={name},device-name={name},mode=rw,boot=yes,auto-delete=yes"])
+                                 f"gcloud compute --project=tenenbaumlab instances create {name} --zone=us-east1-b --machine-type={size} --subnet=default --network-tier=PREMIUM --maintenance-policy=MIGRATE --service-account=150557817012-compute@developer.gserviceaccount.com --scopes=https://www.googleapis.com/auth/devstorage.read_only,https://www.googleapis.com/auth/logging.write,https://www.googleapis.com/auth/monitoring.write,https://www.googleapis.com/auth/servicecontrol,https://www.googleapis.com/auth/service.management.readonly,https://www.googleapis.com/auth/trace.append --disk=name={name},device-name={name},mode=rw,boot=yes,auto-delete=yes"])
     global ZONE
     ZONE = output.decode("utf-8").split("\n")[1].split()[1]
     print(f"Launching in zone {ZONE}")
     return name, name
+
 
 def launchAmazonCloud(size="t2.micro", name=""):
     # aws ec2 run-instances --image-id ami-835f6ae6 --instance-type "t2.micro"
@@ -63,9 +67,9 @@ def launchAmazonCloud(size="t2.micro", name=""):
     o = json.loads(subprocess.check_output(["aws", "ec2", "run-instances",
                                             "--image-id",
                                             "ami-05b392ead9557a161",
-                                            #"ami-0d38af51a5f929bc8",
-                                            #"ami-0351f49971957f1c9" if arguments.gpuImage else "ami-0866b9d387d1a80de",
-                                            #"ami-0b75245c1e9b00c36",
+                                            # "ami-0d38af51a5f929bc8",
+                                            # "ami-0351f49971957f1c9" if arguments.gpuImage else "ami-0866b9d387d1a80de",
+                                            # "ami-0b75245c1e9b00c36",
                                             "--instance-type", size,
                                             "--security-groups", "publicssh",
                                             "--instance-initiated-shutdown-behavior", "terminate",
@@ -92,6 +96,7 @@ def launchAmazonCloud(size="t2.micro", name=""):
     print("Retrieved IP address of instance %s; got %s" % (instance, address))
     return instance, address
 
+
 def scp(address, localFile, remoteFile):
     global ZONE
     if arguments.google:
@@ -100,11 +105,12 @@ def scp(address, localFile, remoteFile):
         if arguments.azure:
             login_name = "azureuser"
             command = f"scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa {localFile} {login_name}@{address}:{remoteFile}"
-        else: # AWS
+        else:  # AWS
             login_name = "ubuntu"
             command = f"scp -o StrictHostKeyChecking=no -i ~/.ssh/testing.pem {localFile} {login_name}@{address}:{remoteFile}"
     print(command)
     os.system(command)
+
 
 def ssh(address, command, pipeIn=None):
     global ZONE
@@ -114,13 +120,14 @@ def ssh(address, command, pipeIn=None):
         if arguments.azure:
             login_name = "azureuser"
             command = f"ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa {login_name}@{address} '{command}'"
-        else: # AWS
+        else:  # AWS
             login_name = "ubuntu"
             command = f"ssh -o StrictHostKeyChecking=no -i ~/.ssh/testing.pem {login_name}@{address} '{command}'"
     if pipeIn:
         command = f"{pipeIn} | {command}"
     print(command)
     os.system(command)
+
 
 def sendCheckpoint(address, checkpoint):
     print("Sending checkpoint:")
@@ -156,7 +163,7 @@ git fetch
 git checkout {br}
 git pull
 """
-    #hack for non-kevin users ...
+    # hack for non-kevin users ...
     if user() != "ellisk":
         cp_str = """#!/bin/bash
 cp -r ../ellisk/ec ~/ec
@@ -200,7 +207,7 @@ chmod 600 ~/.ssh/id_rsa.pub
 bash -c "while sleep %d; do %s; done" &> /tmp/test.txt & 
 UPLOADPID=$!
 """ % (ssh_key, ssh_key, UPLOADFREQUENCY, uploadCommand)
-    
+
     if arguments.gpuImage:
         preamble += """
 source ~/.bashrc
@@ -257,6 +264,7 @@ sudo shutdown -h now
     ssh(address, "bash ./script.sh > /dev/null 2>&1 &")
     print("Executing script on remote host.")
 
+
 def launchExperiment(
         name,
         command,
@@ -272,7 +280,8 @@ def launchExperiment(
     job_id = "{}_{}_{}".format(name, user(), datetime.now().strftime("%FT%T"))
     job_id = job_id.replace(":", ".")
     if upload is None and shutdown:
-        print("You didn't specify an upload host, and also specify that the machine should shut down afterwards. These options are incompatible because this would mean that you couldn't get the experiment outputs.")
+        print(
+            "You didn't specify an upload host, and also specify that the machine should shut down afterwards. These options are incompatible because this would mean that you couldn't get the experiment outputs.")
         sys.exit(1)
 
     if resume and "resume" not in command:
@@ -282,7 +291,7 @@ def launchExperiment(
         print("Invalid tarball for resume.")
         sys.exit(1)
 
-    command = "singularity exec %s container.img %s"%(
+    command = "singularity exec %s container.img %s" % (
         "--nv" if arguments.gpuImage else "",
         command)
     script = """
@@ -295,10 +304,10 @@ def launchExperiment(
             return seed
         except:
             return None
-    
+
     seed = get_seed(command)
     tag = "" if seed is None else seed
-    name = f"{name}_{tag}" # Distinguish replications.
+    name = f"{name}_{tag}"  # Distinguish replications.
 
     print(f"###########Now launching job: {name}\nCommand: {command} \nOutputs will be uploaded to {upload}.")
 
@@ -306,7 +315,7 @@ def launchExperiment(
         name = job_id
         instance, address = launchGoogleCloud(size, name)
     elif arguments.azure:
-        instance, address = launchAzureCloud(size, name=name,region=arguments.azure_region)
+        instance, address = launchAzureCloud(size, name=name, region=arguments.azure_region)
     else:
         instance, address = launchAmazonCloud(size, name=name)
     time.sleep(120)
@@ -332,6 +341,7 @@ def launchExperiment(
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="")
     parser.add_argument('-u', "--upload",
                         default={
@@ -373,7 +383,6 @@ if __name__ == "__main__":
     parser.add_argument("name")
     parser.add_argument("command")
     arguments = parser.parse_args()
-    
 
     launchExperiment(arguments.name,
                      arguments.command,

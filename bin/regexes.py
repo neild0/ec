@@ -7,7 +7,6 @@ from dreamcoder.domains.regex.main import main, regex_options
 from dreamcoder.dreamcoder import commandlineArguments
 from dreamcoder.utilities import numberOfCPUs
 
-
 if __name__ == '__main__':
     args = commandlineArguments(
         activation='relu', iterations=10,

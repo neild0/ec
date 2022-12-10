@@ -23,9 +23,9 @@ from torch.nn.parameter import Parameter
 def choose(matrix, idxs):
     if isinstance(idxs, Variable):
         idxs = idxs.data
-    assert(matrix.ndimension() == 2)
+    assert (matrix.ndimension() == 2)
     unrolled_idxs = idxs + \
-        torch.arange(0, matrix.size(0)).type_as(idxs) * matrix.size(1)
+                    torch.arange(0, matrix.size(0)).type_as(idxs) * matrix.size(1)
     return matrix.view(matrix.nelement())[unrolled_idxs]
 
 
@@ -72,8 +72,8 @@ class Network(nn.Module):
                 torch.rand(1, self.h_input_encoder_size))
             self.output_encoder_cell = nn.GRUCell(
                 input_size=self.v_input +
-                1 +
-                self.h_input_encoder_size,
+                           1 +
+                           self.h_input_encoder_size,
                 hidden_size=self.h_output_encoder_size,
                 bias=True)
             self.decoder_cell = nn.GRUCell(
@@ -89,8 +89,8 @@ class Network(nn.Module):
                 1, self.h_input_encoder_size)), Parameter(torch.rand(1, self.h_input_encoder_size))])
             self.output_encoder_cell = nn.LSTMCell(
                 input_size=self.v_input +
-                1 +
-                self.h_input_encoder_size,
+                           1 +
+                           self.h_input_encoder_size,
                 hidden_size=self.h_output_encoder_size,
                 bias=True)
             self.output_encoder_init_c = Parameter(
@@ -276,7 +276,7 @@ class Network(nn.Module):
         :param List[LongTensor] inputs: n_examples * (max_length_input * batch_size)
         :param List[LongTensor] target: max_length_target * batch_size
         """
-        assert((mode == "score" and target is not None) or mode == "sample")
+        assert ((mode == "score" and target is not None) or mode == "sample")
 
         n_examples = len(inputs)
         max_length_input = [inputs[j].size(0) for j in range(n_examples)]
@@ -286,16 +286,18 @@ class Network(nn.Module):
 
         score = Variable(torch.zeros(batch_size))
         inputs_scatter = [Variable(torch.zeros(max_length_input[j], batch_size, self.v_input + 1).scatter_(
-            2, inputs[j][:, :, None], 1)) for j in range(n_examples)]  # n_examples * (max_length_input * batch_size * v_input+1)
+            2, inputs[j][:, :, None], 1)) for j in
+            range(n_examples)]  # n_examples * (max_length_input * batch_size * v_input+1)
         outputs_scatter = [Variable(torch.zeros(max_length_output[j], batch_size, self.v_input + 1).scatter_(
-            2, outputs[j][:, :, None], 1)) for j in range(n_examples)]  # n_examples * (max_length_output * batch_size * v_input+1)
+            2, outputs[j][:, :, None], 1)) for j in
+            range(n_examples)]  # n_examples * (max_length_output * batch_size * v_input+1)
         if target is not None:
             target_scatter = Variable(torch.zeros(max_length_target,
                                                   batch_size,
                                                   self.v_target + 1).scatter_(2,
                                                                               target[:,
-                                                                                     :,
-                                                                                     None],
+                                                                              :,
+                                                                              None],
                                                                               1))  # max_length_target * batch_size * v_target+1
 
         # -------------- Input Encoder -------------
@@ -315,7 +317,7 @@ class Network(nn.Module):
                     inputs_scatter[j][i, :, :], state)
                 if i + 1 < max_length_input[j]:
                     active[i + 1, :] = active[i, :] * \
-                        (inputs[j][i, :] != self.v_input)
+                                       (inputs[j][i, :] != self.v_input)
                 h = self.cell_get_h(state)
                 hs.append(h[None, :, :])
             input_H.append(torch.cat(hs, 0))
@@ -363,7 +365,7 @@ class Network(nn.Module):
                     [outputs_scatter[j][i, :, :], input_attend(j, h)], 1), state)
                 if i + 1 < max_length_output[j]:
                     active[i + 1, :] = active[i, :] * \
-                        (outputs[j][i, :] != self.v_input)
+                                       (outputs[j][i, :] != self.v_input)
                 h = self.cell_get_h(state)
                 hs.append(h[None, :, :])
             output_H.append(torch.cat(hs, 0))
@@ -415,7 +417,7 @@ class Network(nn.Module):
                 target[i, :] = torch.multinomial(
                     logsoftmax.data.exp(), 1)[:, 0]
             score = score + \
-                choose(logsoftmax, target[i, :]) * Variable(active.float())
+                    choose(logsoftmax, target[i, :]) * Variable(active.float())
             active *= (target[i, :] != self.v_target)
             for j in range(n_examples):
                 if mode == "score":

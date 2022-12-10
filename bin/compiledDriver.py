@@ -13,7 +13,7 @@ from dreamcoder.utilities import eprint
 
 if __name__ == "__main__":
     sys.setrecursionlimit(10000)
-    
+
     start = time.time()
     request = dill.load(sys.stdin.buffer)
     dt = time.time() - start

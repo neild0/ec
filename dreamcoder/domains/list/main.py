@@ -10,7 +10,8 @@ from dreamcoder.utilities import eprint, flatten, testTrainSplit
 from dreamcoder.grammar import Grammar
 from dreamcoder.task import Task
 from dreamcoder.type import Context, arrow, tbool, tlist, tint, t0, UnificationFailure
-from dreamcoder.domains.list.listPrimitives import basePrimitives, primitives, McCarthyPrimitives, bootstrapTarget_extra, no_length
+from dreamcoder.domains.list.listPrimitives import basePrimitives, primitives, McCarthyPrimitives, \
+    bootstrapTarget_extra, no_length
 from dreamcoder.domains.list.makeListTasks import make_list_bootstrap_tasks, sortBootstrap, EASYLISTTASKS
 
 
@@ -58,9 +59,11 @@ def list_features(examples):
     features = []
     ot = type(examples[0][1])
 
-    def mean(l): return 0 if not l else sum(l) / len(l)
+    def mean(l):
+        return 0 if not l else sum(l) / len(l)
+
     imean = [mean(i) for (i,), o in examples]
-    ivar = [sum((v - imean[idx])**2
+    ivar = [sum((v - imean[idx]) ** 2
                 for v in examples[idx][0][0])
             for idx in range(len(examples))]
 
@@ -75,20 +78,22 @@ def list_features(examples):
     # DISABLED outputs if bools (-1/1), else 0s
     if ot == list:  # lists of ints or bools
         omean = [mean(o) for (i,), o in examples]
-        ovar = [sum((v - omean[idx])**2
+        ovar = [sum((v - omean[idx]) ** 2
                     for v in examples[idx][1])
                 for idx in range(len(examples))]
 
         def cntr(
-            l, o): return 0 if not l else len(
-            set(l).difference(
-                set(o))) / len(l)
+                l, o):
+            return 0 if not l else len(
+                set(l).difference(
+                    set(o))) / len(l)
+
         cnt_not_in_output = [cntr(i, o) for (i,), o in examples]
 
-        #features += [len(i) for (i,), o in examples]
-        #features += [len(o) for (i,), o in examples]
+        # features += [len(i) for (i,), o in examples]
+        # features += [len(o) for (i,), o in examples]
         features.append(sum(len(i) - len(o) for (i,), o in examples))
-        #features += cnt_not_int_output
+        # features += cnt_not_int_output
         features.append(sum(cnt_not_in_output))
         features.append(sum(om - im for im, om in zip(imean, omean)))
         features.append(sum(ov - iv for iv, ov in zip(ivar, ovar)))
@@ -98,10 +103,10 @@ def list_features(examples):
     elif ot == bool:
         outs = [o for (i,), o in examples]
 
-        #features += [len(i) for (i,), o in examples]
-        #features += [-1 for _ in examples]
+        # features += [len(i) for (i,), o in examples]
+        # features += [-1 for _ in examples]
         features.append(sum(len(i) for (i,), o in examples))
-        #features += [0 for _ in examples]
+        # features += [0 for _ in examples]
         features.append(0)
         features.append(sum(imean))
         features.append(sum(ivar))
@@ -110,16 +115,18 @@ def list_features(examples):
         # features += [1 if o else -1 for o in outs]
     else:  # int
         def cntr(
-            l, o): return 0 if not l else len(
-            set(l).difference(
-                set(o))) / len(l)
+                l, o):
+            return 0 if not l else len(
+                set(l).difference(
+                    set(o))) / len(l)
+
         cnt_not_in_output = [cntr(i, [o]) for (i,), o in examples]
         outs = [o for (i,), o in examples]
 
-        #features += [len(i) for (i,), o in examples]
-        #features += [1 for (i,), o in examples]
+        # features += [len(i) for (i,), o in examples]
+        # features += [1 for (i,), o in examples]
         features.append(sum(len(i) for (i,), o in examples))
-        #features += cnt_not_int_output
+        # features += cnt_not_int_output
         features.append(sum(cnt_not_in_output))
         features.append(sum(o - im for im, o in zip(imean, outs)))
         features.append(sum(ivar))
@@ -145,17 +152,21 @@ def isIntFunction(tp):
     except UnificationFailure:
         return False
 
+
 try:
     from dreamcoder.recognition import RecurrentFeatureExtractor
+
+
     class LearnedFeatureExtractor(RecurrentFeatureExtractor):
         H = 64
 
         special = None
 
         def tokenize(self, examples):
-            def sanitize(l): return [z if z in self.lexicon else "?"
-                                     for z_ in l
-                                     for z in (z_ if isinstance(z_, list) else [z_])]
+            def sanitize(l):
+                return [z if z in self.lexicon else "?"
+                        for z_ in l
+                        for z in (z_ if isinstance(z_, list) else [z_])]
 
             tokenized = []
             for xs, y in examples:
@@ -187,7 +198,7 @@ try:
                 x, str))).union({"LIST_START", "LIST_END", "?"})
 
             # Calculate the maximum length
-            self.maximumLength = float('inf') # Believe it or not this is actually important to have here
+            self.maximumLength = float('inf')  # Believe it or not this is actually important to have here
             self.maximumLength = max(len(l)
                                      for t in tasks + testingTasks
                                      for xs, y in self.tokenize(t.examples)
@@ -204,7 +215,9 @@ try:
                 cuda=cuda,
                 H=self.H,
                 bidirectional=True)
-except: pass
+except:
+    pass
+
 
 def train_necessary(t):
     if t.name in {"head", "is-primes", "len", "pop", "repeat-many", "tail", "keep primes", "keep squares"}:
@@ -341,9 +354,10 @@ def main(args):
             ])
 
     def isIdentityTask(t):
-        return all( len(xs) == 1 and xs[0] == y for xs, y in t.examples  )
+        return all(len(xs) == 1 and xs[0] == y for xs, y in t.examples)
+
     eprint("Removed", sum(isIdentityTask(t) for t in tasks), "tasks that were just the identity function")
-    tasks = [t for t in tasks if not isIdentityTask(t) ]
+    tasks = [t for t in tasks if not isIdentityTask(t)]
 
     prims = {"base": basePrimitives,
              "McCarthy": McCarthyPrimitives,
@@ -368,15 +382,14 @@ def main(args):
     extractor.H = args.pop("hidden")
 
     timestamp = datetime.datetime.now().isoformat()
-    outputDirectory = "experimentOutputs/list/%s"%timestamp
-    os.system("mkdir -p %s"%outputDirectory)
-    
+    outputDirectory = "experimentOutputs/list/%s" % timestamp
+    os.system("mkdir -p %s" % outputDirectory)
+
     args.update({
         "featureExtractor": extractor,
-        "outputPrefix": "%s/list"%outputDirectory,
+        "outputPrefix": "%s/list" % outputDirectory,
         "evaluationTimeout": 0.0005,
     })
-    
 
     eprint("Got {} list tasks".format(len(tasks)))
     split = args.pop("split")

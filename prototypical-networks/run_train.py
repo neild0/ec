@@ -29,7 +29,8 @@ parser.add_argument('--data.train_episodes', type=int, default=100, metavar='NTR
 parser.add_argument('--data.test_episodes', type=int, default=100, metavar='NTEST',
                     help="number of test episodes per epoch (default: 100)")
 parser.add_argument('--data.trainval', action='store_true', help="run in train+validation mode (default: False)")
-parser.add_argument('--data.sequential', action='store_true', help="use sequential sampler instead of episodic (default: False)")
+parser.add_argument('--data.sequential', action='store_true',
+                    help="use sequential sampler instead of episodic (default: False)")
 parser.add_argument('--data.cuda', action='store_true', help="run in CUDA mode (default: False)")
 
 # model args

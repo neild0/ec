@@ -4,6 +4,7 @@ from datetime import datetime
 from collections import defaultdict
 import re
 
+
 def getExperimentNames(experimentsFile):
     """Experiment names should be marked with an *"""
     with open(experimentsFile) as f:
@@ -12,13 +13,14 @@ def getExperimentNames(experimentsFile):
     experimentNames = []
     for line in lines:
         if "*" in line:
-            name = line[line.index("*"):].split()[0][1:] #Split from * to first space, then remove asterisk.
+            name = line[line.index("*"):].split()[0][1:]  # Split from * to first space, then remove asterisk.
             experimentNames.append(name)
 
     print("Found experiments:")
     for e in experimentNames:
         print(e)
     return experimentNames
+
 
 def getMostRecent(ex1, ex2):
     date1, date2 = ex1.split('_')[-1], ex2.split('_')[-1]
@@ -37,14 +39,15 @@ def getExperimentLogs(experiments, logsDirectory):
             if e in log:
                 if e not in experimentLogs:
                     experimentLogs[e] = log
-                else:   
+                else:
                     # Tiebreak based on date.
                     experimentLogs[e] = getMostRecent(log, experimentLogs[e])
-    
+
     print("Found experiment logs: ")
     for e in experimentLogs:
         print("%s : %s" % (e, experimentLogs[e]))
     return experimentLogs
+
 
 def parseLogFile(experimentLog, logsDirectory):
     totalIters, currentIter, bestTest, lastTest = 0, 0, 0, 0
@@ -68,17 +71,18 @@ def parseLogFile(experimentLog, logsDirectory):
             totalTasks = int(testing_hits.group(2))
             testingStats['test_total_tasks'].append(totalTasks)
 
-
     is_done = "DONE" if (testingStats['test_iteration'][-1] == total_iterations - 1) else ""
-    last_few_test_hits = testingStats['test_hits'][-1], testingStats['test_hits'][-2] if len(testingStats['test_hits']) > 2 else -1, testingStats['test_hits'][-3] if len(testingStats['test_hits']) > 3 else -1
+    last_few_test_hits = testingStats['test_hits'][-1], testingStats['test_hits'][-2] if len(
+        testingStats['test_hits']) > 2 else -1, testingStats['test_hits'][-3] if len(
+        testingStats['test_hits']) > 3 else -1
     print("%s %s Total iterations: %d, on test iteration %d, best test is %d/%d, last few tests are: %d, %d, %d" % \
-        (is_done, 
-            possiblyBroken,
-            total_iterations, 
-            testingStats['test_iteration'][-1]+1, 
-            max(testingStats['test_hits']), 
-            testingStats['test_total_tasks'][-1],
-            *last_few_test_hits))
+          (is_done,
+           possiblyBroken,
+           total_iterations,
+           testingStats['test_iteration'][-1] + 1,
+           max(testingStats['test_hits']),
+           testingStats['test_total_tasks'][-1],
+           *last_few_test_hits))
 
 
 def summarizeLogs(experimentsFile, logsDirectory):
@@ -91,17 +95,16 @@ def summarizeLogs(experimentsFile, logsDirectory):
         parseLogFile(experimentLogs[e], logsDirectory)
 
 
-
 if __name__ == "__main__":
     import sys
 
     import argparse
 
-    parser = argparse.ArgumentParser(description = "")
+    parser = argparse.ArgumentParser(description="")
     parser.add_argument("--experimentsFile", type=str)
     parser.add_argument("--logsDirectory", type=str)
 
     arguments = parser.parse_args()
-    
-    summarizeLogs(arguments.experimentsFile, 
-        arguments.logsDirectory)
+
+    summarizeLogs(arguments.experimentsFile,
+                  arguments.logsDirectory)

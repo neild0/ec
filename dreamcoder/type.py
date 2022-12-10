@@ -7,15 +7,17 @@ class Occurs(UnificationFailure):
 
 
 class Type(object):
-    def __str__(self): return self.show(True)
+    def __str__(self):
+        return self.show(True)
 
-    def __repr__(self): return str(self)
+    def __repr__(self):
+        return str(self)
 
     @staticmethod
     def fromjson(j):
         if "index" in j: return TypeVariable(j["index"])
         if "constructor" in j: return TypeConstructor(j["constructor"],
-                                                      [ Type.fromjson(a) for a in j["arguments"] ])
+                                                      [Type.fromjson(a) for a in j["arguments"]])
         assert False
 
 
@@ -26,19 +28,20 @@ class TypeConstructor(Type):
         self.isPolymorphic = any(a.isPolymorphic for a in arguments)
 
     def free_type_variables(self):
-        return {fv for t in self.arguments for fv in t.free_type_variables() }
+        return {fv for t in self.arguments for fv in t.free_type_variables()}
 
     def makeDummyMonomorphic(self, mapping=None):
         mapping = mapping if mapping is not None else {}
         return TypeConstructor(self.name,
-                               [ a.makeDummyMonomorphic(mapping) for a in self.arguments ])
+                               [a.makeDummyMonomorphic(mapping) for a in self.arguments])
 
     def __eq__(self, other):
         return isinstance(other, TypeConstructor) and \
-            self.name == other.name and \
-            all(x == y for x, y in zip(self.arguments, other.arguments))
+               self.name == other.name and \
+               all(x == y for x, y in zip(self.arguments, other.arguments))
 
-    def __hash__(self): return hash((self.name,) + tuple(self.arguments))
+    def __hash__(self):
+        return hash((self.name,) + tuple(self.arguments))
 
     def __ne__(self, other):
         return not (self == other)
@@ -61,8 +64,8 @@ class TypeConstructor(Type):
         return {"constructor": self.name,
                 "arguments": [a.json() for a in self.arguments]}
 
-
-    def isArrow(self): return self.name == ARROW
+    def isArrow(self):
+        return self.name == ARROW
 
     def functionArguments(self):
         if self.name == ARROW:
@@ -115,8 +118,7 @@ class TypeConstructor(Type):
             bindings = {}
         newArguments = []
         return TypeConstructor(self.name, [x.instantiateMutable(context, bindings)
-                                           for x in self.arguments ])
-        
+                                           for x in self.arguments])
 
     def canonical(self, bindings=None):
         if not self.isPolymorphic:
@@ -138,28 +140,33 @@ class TypeVariable(Type):
 
     def makeDummyMonomorphic(self, mapping=None):
         mapping = mapping if mapping is not None else {}
-        if self.v  not in mapping:
+        if self.v not in mapping:
             mapping[self.v] = TypeConstructor(f"dummy_type_{len(mapping)}", [])
         return mapping[self.v]
-        
 
     def __eq__(self, other):
         return isinstance(other, TypeVariable) and self.v == other.v
 
-    def __ne__(self, other): return not (self.v == other.v)
+    def __ne__(self, other):
+        return not (self.v == other.v)
 
-    def __hash__(self): return self.v
+    def __hash__(self):
+        return self.v
 
-    def show(self, _): return "t%d" % self.v
+    def show(self, _):
+        return "t%d" % self.v
 
     def json(self):
         return {"index": self.v}
 
-    def returns(self): return self
+    def returns(self):
+        return self
 
-    def isArrow(self): return False
+    def isArrow(self):
+        return False
 
-    def functionArguments(self): return []
+    def functionArguments(self):
+        return []
 
     def apply(self, context):
         for v, t in context.substitution:
@@ -174,7 +181,8 @@ class TypeVariable(Type):
         context.substitution[self.v] = new
         return new
 
-    def occurs(self, v): return v == self.v
+    def occurs(self, v):
+        return v == self.v
 
     def instantiate(self, context, bindings=None):
         if bindings is None:
@@ -246,13 +254,15 @@ class Context(object):
         return "Context(next = %d, {%s})" % (self.nextVariable, ", ".join(
             "t%d ||> %s" % (k, v.apply(self)) for k, v in self.substitution))
 
-    def __repr__(self): return str(self)
+    def __repr__(self):
+        return str(self)
+
 
 class MutableContext(object):
     def __init__(self):
         self.substitution = []
 
-    def extend(self,i,t):
+    def extend(self, i, t):
         assert self.substitution[i] is None
         self.substitution[i] = t
 
@@ -274,15 +284,15 @@ class MutableContext(object):
             if t2.occurs(t1.v):
                 raise Occurs()
             self.extend(t1.v, t2)
-            return 
+            return
         if isinstance(t2, TypeVariable):
             if t1.occurs(t2.v):
                 raise Occurs()
             self.extend(t2.v, t1)
-            return 
+            return
         if t1.name != t2.name:
             raise UnificationFailure(t1, t2)
-        
+
         for x, y in zip(t2.arguments, t1.arguments):
             self.unify(x, y)
 
@@ -373,6 +383,7 @@ def guess_arrow_type(examples):
     output_type = guess_type([y for _, y in examples])
     return arrow(*(input_types + [output_type]))
 
+
 def canUnify(t1, t2):
     k = MutableContext()
     t1 = t1.instantiateMutable(k)
@@ -380,5 +391,5 @@ def canUnify(t1, t2):
     try:
         k.unify(t1, t2)
         return True
-    except UnificationFailure: return False
-    
+    except UnificationFailure:
+        return False

@@ -1,7 +1,9 @@
 from dreamcoder.program import *
 from dreamcoder.domains.text.makeTextTasks import delimiters
 
+
 def _isUpper(x): return x.isupper()
+
 
 def _increment(x): return x + 1
 
@@ -44,7 +46,9 @@ def _join(delimiter): return lambda ss: delimiter.join(ss)
 
 
 def _identity(x): return x
-#def _reverse(x): return x[::-1]
+
+
+# def _reverse(x): return x[::-1]
 
 
 def _strip(x): return x.strip()
@@ -58,10 +62,10 @@ specialCharacters = {' ': 'SPACE',
                      '(': 'LPAREN'}
 
 primitives = [
-    Primitive("char-eq?", arrow(tcharacter, tcharacter, tboolean), _eq),
-    Primitive("STRING", tstr, None)
-] + [Primitive("'%s'" % d, tcharacter, d) for d in delimiters if d not in specialCharacters] + \
-    [Primitive(name, tcharacter, value) for value, name in specialCharacters.items()]
+                 Primitive("char-eq?", arrow(tcharacter, tcharacter, tboolean), _eq),
+                 Primitive("STRING", tstr, None)
+             ] + [Primitive("'%s'" % d, tcharacter, d) for d in delimiters if d not in specialCharacters] + \
+             [Primitive(name, tcharacter, value) for value, name in specialCharacters.items()]
 
 
 def _cons(x): return lambda y: [x] + y
@@ -74,14 +78,14 @@ def _cdr(x): return x[1:]
 
 
 targetTextPrimitives = [
-    Primitive("take-word", arrow(tcharacter, tstr, tstr), None),
-    Primitive("drop-word", arrow(tcharacter, tstr, tstr), None),
-    Primitive("append", arrow(tlist(t0), tlist(t0), tlist(t0)), None),
-    Primitive("abbreviate", arrow(tstr, tstr), None),
-    Primitive("last-word", arrow(tcharacter, tstr, tstr), None),
-    Primitive("replace-character", arrow(tcharacter, tcharacter, tstr, tstr), None),
-] + primitives + [
-    Primitive("empty", tlist(t0), []),
-    Primitive("cons", arrow(t0, tlist(t0), tlist(t0)), _cons),
-    Primitive("car", arrow(tlist(t0), t0), _car),
-    Primitive("cdr", arrow(tlist(t0), tlist(t0)), _cdr)]
+                           Primitive("take-word", arrow(tcharacter, tstr, tstr), None),
+                           Primitive("drop-word", arrow(tcharacter, tstr, tstr), None),
+                           Primitive("append", arrow(tlist(t0), tlist(t0), tlist(t0)), None),
+                           Primitive("abbreviate", arrow(tstr, tstr), None),
+                           Primitive("last-word", arrow(tcharacter, tstr, tstr), None),
+                           Primitive("replace-character", arrow(tcharacter, tcharacter, tstr, tstr), None),
+                       ] + primitives + [
+                           Primitive("empty", tlist(t0), []),
+                           Primitive("cons", arrow(t0, tlist(t0), tlist(t0)), _cons),
+                           Primitive("car", arrow(tlist(t0), t0), _car),
+                           Primitive("cdr", arrow(tlist(t0), tlist(t0)), _cdr)]

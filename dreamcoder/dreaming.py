@@ -71,6 +71,7 @@ def backgroundHelmholtzEnumeration(tasks, g, timeout, _=None,
 
 if __name__ == "__main__":
     from dreamcoder.recognition import RecognitionModel, DummyFeatureExtractor
+
     g = Grammar.uniform([k1, k0, addition, subtraction, multiplication])
     frontiers = helmholtzEnumeration(g,
                                      arrow(tint, tint),

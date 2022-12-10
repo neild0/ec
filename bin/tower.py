@@ -7,7 +7,6 @@ from dreamcoder.domains.tower.main import main, TowerCNN, tower_options
 from dreamcoder.dreamcoder import commandlineArguments
 from dreamcoder.utilities import numberOfCPUs
 
-
 if __name__ == '__main__':
     arguments = commandlineArguments(
         featureExtractor=TowerCNN,

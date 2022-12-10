@@ -23,8 +23,10 @@ class FragmentGrammar(object):
         def productionKey(xxx_todo_changeme):
             (l, t, p) = xxx_todo_changeme
             return not isinstance(p, Primitive), -l
+
         return "\n".join(["%f\tt0\t$_" % self.logVariable] + ["%f\t%s\t%s" % (l, t, p)
-                                                              for l, t, p in sorted(self.productions, key=productionKey)])
+                                                              for l, t, p in
+                                                              sorted(self.productions, key=productionKey)])
 
     def buildCandidates(self, context, environment, request):
         candidates = []
@@ -156,7 +158,7 @@ class FragmentGrammar(object):
                     # I think that this is some kind of bug. But I can't figure it out right now.
                     # As a hack, count this as though it were a failure
                     continue
-                    #raise GrammarFailure('len(xs) != len(argumentTypes): tp={}, xs={}'.format(tp, xs))
+                    # raise GrammarFailure('len(xs) != len(argumentTypes): tp={}, xs={}'.format(tp, xs))
 
                 thisLikelihood = candidateLikelihood
                 if isinstance(production, Index):
@@ -202,7 +204,7 @@ class FragmentGrammar(object):
         # memoize result
         if shouldDoCaching:
             outTypes = [request.apply(context)] + \
-                [v.apply(context) for v in environment]
+                       [v.apply(context) for v in environment]
             outTypes = canonicalTypes(outTypes)
             self.likelihoodCache[cacheKey] = (
                 outTypes, totalLikelihood, allUses)
@@ -228,7 +230,8 @@ class FragmentGrammar(object):
                                log(max(uses.possibleVariables, 1.)), [(log(uses.actualUses.get(p, 0.) +
                                                                            pseudoCounts) -
                                                                        log(uses.possibleUses.get(p, 0.) +
-                                                                           pseudoCounts), t, p) for _, t, p in self.productions])
+                                                                           pseudoCounts), t, p) for _, t, p in
+                                                                      self.productions])
 
     def jointFrontiersLikelihood(self, frontiers):
         return sum(lse([entry.logLikelihood + self.logLikelihood(frontier.task.request, entry.program)
@@ -246,7 +249,8 @@ class FragmentGrammar(object):
                         entry.program) for entry in frontier),
                 frontiers))
 
-    def __len__(self): return len(self.productions)
+    def __len__(self):
+        return len(self.productions)
 
     @staticmethod
     def fromGrammar(g):
@@ -258,7 +262,8 @@ class FragmentGrammar(object):
                                           for q in [defragment(p)]])
 
     @property
-    def primitives(self): return [p for _, _, p in self.productions]
+    def primitives(self):
+        return [p for _, _, p in self.productions]
 
     @staticmethod
     def uniform(productions):
@@ -292,7 +297,7 @@ class FragmentGrammar(object):
             structurePenalty=0.001,
             a=0,
             CPUs=1):
-        _ = topk_use_only_likelihood # not used in python compressor
+        _ = topk_use_only_likelihood  # not used in python compressor
         originalFrontiers = frontiers
         frontiers = [frontier for frontier in frontiers if not frontier.empty]
         eprint("Inducing a grammar from", len(frontiers), "frontiers")
@@ -306,6 +311,7 @@ class FragmentGrammar(object):
                 CPUs,
                 lambda f: bestGrammar.rescoreFrontier(f).topK(topK),
                 frontiers)
+
         restrictedFrontiers = []
 
         def grammarScore(g):
@@ -420,9 +426,9 @@ class FragmentGrammar(object):
         grammar = bestGrammar.toGrammar()
 
         if False and \
-           any(productionUses.get(p, 0) < 0.5 for p in grammar.primitives if p.isInvented):
-            uselessProductions = [ p for p in grammar.primitives                 
-                                   if p.isInvented and productionUses.get(p, 0) < 0.5]
+                any(productionUses.get(p, 0) < 0.5 for p in grammar.primitives if p.isInvented):
+            uselessProductions = [p for p in grammar.primitives
+                                  if p.isInvented and productionUses.get(p, 0) < 0.5]
             eprint("The following invented primitives are no longer needed, removing them...")
             eprint("\t" + "\t\n".join(map(str, uselessProductions)))
             grammar = grammar.removeProductions(uselessProductions)

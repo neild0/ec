@@ -8,12 +8,14 @@ from protonets.models import register_model
 
 from .utils import euclidean_dist
 
+
 class Flatten(nn.Module):
     def __init__(self):
         super(Flatten, self).__init__()
 
     def forward(self, x):
         return x.view(x.size(0), -1)
+
 
 class Protonet(nn.Module):
     def __init__(self, encoder):
@@ -22,8 +24,8 @@ class Protonet(nn.Module):
         self.encoder = encoder
 
     def myloss(self, sample):
-        xs = Variable(sample['xs']) # support
-        xq = Variable(sample['xq']) # query
+        xs = Variable(sample['xs'])  # support
+        xq = Variable(sample['xq'])  # query
 
         n_class = xs.size(0)
         assert xq.size(0) == n_class
@@ -42,8 +44,8 @@ class Protonet(nn.Module):
         z = self.encoder.forward(x)
         z_dim = z.size(-1)
 
-        z_proto = z[:n_class*n_support].view(n_class, n_support, z_dim).mean(1)
-        zq = z[n_class*n_support:]
+        z_proto = z[:n_class * n_support].view(n_class, n_support, z_dim).mean(1)
+        zq = z[n_class * n_support:]
 
         dists = euclidean_dist(zq, z_proto)
 
@@ -62,8 +64,8 @@ class Protonet(nn.Module):
         }
 
     def loss(self, sample):
-        xs = Variable(sample['xs']) # support
-        xq = Variable(sample['xq']) # query
+        xs = Variable(sample['xs'])  # support
+        xq = Variable(sample['xq'])  # query
 
         n_class = xs.size(0)
         assert xq.size(0) == n_class
@@ -82,8 +84,8 @@ class Protonet(nn.Module):
         z = self.encoder.forward(x)
         z_dim = z.size(-1)
 
-        z_proto = z[:n_class*n_support].view(n_class, n_support, z_dim).mean(1)
-        zq = z[n_class*n_support:]
+        z_proto = z[:n_class * n_support].view(n_class, n_support, z_dim).mean(1)
+        zq = z[n_class * n_support:]
 
         dists = euclidean_dist(zq, z_proto)
 
@@ -99,6 +101,7 @@ class Protonet(nn.Module):
             'acc': acc_val.item(),
             'vect': z
         }
+
 
 @register_model('protonet_conv')
 def load_protonet_conv(**kwargs):

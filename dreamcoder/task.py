@@ -31,17 +31,20 @@ class Task(object):
         if self.supervision is None:
             return self.name
         else:
-            return self.name + " (%s)"%self.supervision
+            return self.name + " (%s)" % self.supervision
 
     def __repr__(self):
-        return "Task(name={self.name}, request={self.request}, examples={self.examples}"\
+        return "Task(name={self.name}, request={self.request}, examples={self.examples}" \
             .format(self=self)
 
-    def __eq__(self, o): return self.name == o.name
+    def __eq__(self, o):
+        return self.name == o.name
 
-    def __ne__(self, o): return not (self == o)
+    def __ne__(self, o):
+        return not (self == o)
 
-    def __hash__(self): return hash(self.name)
+    def __hash__(self):
+        return hash(self.name)
 
     def describe(self):
         description = ["%s : %s" % (self.name, self.request)]
@@ -96,8 +99,8 @@ class Task(object):
 
             return True
         # except e:
-            # eprint(e)
-            # assert(False)
+        # eprint(e)
+        # assert(False)
         except EvaluationTimeout:
             eprint("Timed out while evaluating", e)
             return False
@@ -118,9 +121,9 @@ class Task(object):
         averages = [sum(t.features[j] for t in tasks) / float(len(tasks))
                     for j in range(dimension)]
         variances = [sum((t.features[j] -
-                          averages[j])**2 for t in tasks) /
+                          averages[j]) ** 2 for t in tasks) /
                      float(len(tasks)) for j in range(dimension)]
-        standardDeviations = [v**0.5 for v in variances]
+        standardDeviations = [v ** 0.5 for v in variances]
         for j, s in enumerate(standardDeviations):
             if s == 0.:
                 eprint(
@@ -158,7 +161,7 @@ class DifferentiableTask(Task):
         if clipLoss is not None: arguments['clipLoss'] = float(clipLoss)
         if clipOutput is not None: arguments['clipOutput'] = float(clipOutput)
         if actualParameters is not None: arguments['actualParameters'] = int(actualParameters)
-        
+
         self.specialTask = ("differentiable",
                             arguments)
 

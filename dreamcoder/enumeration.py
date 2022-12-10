@@ -20,33 +20,31 @@ def multicoreEnumeration(g, tasks, _=None,
 
     # We don't use actual threads but instead use the multiprocessing
     # library. This is because we need to be able to kill workers.
-    #from multiprocess import Process, Queue
+    # from multiprocess import Process, Queue
 
     from multiprocessing import Queue
 
-     # everything that gets sent between processes will be dilled
+    # everything that gets sent between processes will be dilled
     import dill
-    
+
     solvers = {"ocaml": solveForTask_ocaml,
-               "bottom": solveForTask_bottom,   
-               "pypy": solveForTask_pypy,   
-               "python": solveForTask_python}   
-    assert solver in solvers, "You must specify a valid solver. options are ocaml, pypy, or python." 
+               "bottom": solveForTask_bottom,
+               "pypy": solveForTask_pypy,
+               "python": solveForTask_python}
+    assert solver in solvers, "You must specify a valid solver. options are ocaml, pypy, or python."
 
     likelihoodModel = None
     if solver == 'pypy' or solver == 'python':
-      # Use an all or nothing likelihood model.
-      likelihoodModel = AllOrNothingLikelihoodModel(timeout=evaluationTimeout) 
-      
+        # Use an all or nothing likelihood model.
+        likelihoodModel = AllOrNothingLikelihoodModel(timeout=evaluationTimeout)
 
     if not isinstance(g, dict):
         g = {t: g for t in tasks}
-    
-    
+
     if solver == "bottom":
         for t, _g in g.items():
             _g.unrolled = PCFG.from_grammar(_g, t.request).number_rules()
-                
+
     task2grammar = g
 
     solver_str = solver
@@ -83,14 +81,14 @@ def multicoreEnumeration(g, tasks, _=None,
     stopwatches = {t: Stopwatch() for t in jobs}
 
     # Map from task to how many programs we enumerated for that task
-    taskToNumberOfPrograms = {t: 0 for t in tasks }
+    taskToNumberOfPrograms = {t: 0 for t in tasks}
 
     def numberOfHits(f):
         return sum(e.logLikelihood > -0.01 for e in f)
 
     def budgetIncrement(lb):
         nonlocal solver_str
-        if solver_str=="bottom":
+        if solver_str == "bottom":
             return 6
         else:
             return 1.5
@@ -228,6 +226,7 @@ def multicoreEnumeration(g, tasks, _=None,
 
     return [frontiers[t] for t in tasks], bestSearchTime
 
+
 def wrapInThread(f):
     """
     Returns a function that is designed to be run in a thread/threadlike process.
@@ -242,14 +241,15 @@ def wrapInThread(f):
         try:
             r = f(*a, **k)
             q.put(dill.dumps({"result": "success",
-                   "ID": ID,
-                   "value": r}))
+                              "ID": ID,
+                              "value": r}))
         except Exception as e:
             q.put(dill.dumps({"result": "failure",
-                   "exception": e,
-                   "stacktrace": traceback.format_exc(),
-                   "ID": ID}))
+                              "exception": e,
+                              "stacktrace": traceback.format_exc(),
+                              "ID": ID}))
             return
+
     return _f
 
 
@@ -259,10 +259,9 @@ def solveForTask_ocaml(_=None,
                        g=None, tasks=None,
                        lowerBound=None, upperBound=None, budgetIncrement=None,
                        timeout=None,
-                       testing=None, # FIXME: unused
+                       testing=None,  # FIXME: unused
                        likelihoodModel=None,
                        evaluationTimeout=None, maximumFrontiers=None):
-
     import json
 
     def taskMessage(t):
@@ -277,7 +276,6 @@ def solveForTask_ocaml(_=None,
             m["extras"] = extra
         return m
 
-
     message = {"DSL": g.json(),
                "tasks": [taskMessage(t)
                          for t in tasks],
@@ -289,7 +287,7 @@ def solveForTask_ocaml(_=None,
                "budgetIncrement": budgetIncrement,
                "verbose": False,
                "shatter": 5 if len(tasks) == 1 and "turtle" in str(tasks[0].request) else 10}
-    
+
     if hasattr(g, "unrolled"):
         message["PCFG"] = g.unrolled
 
@@ -298,7 +296,6 @@ def solveForTask_ocaml(_=None,
 
     message = json.dumps(message)
     # uncomment this if you want to save the messages being sent to the solver
-    
 
     try:
         solver_file = os.path.join(get_root_dir(), 'solver')
@@ -318,15 +315,15 @@ def solveForTask_ocaml(_=None,
         eprint("message,", message)
         assert False, "MAX RAISE"
 
-
-    pc = response.get("number_enumerated",0)  # TODO
+    pc = response.get("number_enumerated", 0)  # TODO
     frontiers = {}
     searchTimes = {}
     for t in tasks:
         solutions = response[t.name]
         for e in solutions:
-            p=Program.parse(e["program"])
-            try: g.logLikelihood(t.request, p)
+            p = Program.parse(e["program"])
+            try:
+                g.logLikelihood(t.request, p)
             except:
                 eprint(t, p, "TYPING ERROR")
         frontier = Frontier([FrontierEntry(program=p,
@@ -351,6 +348,7 @@ def solveForTask_ocaml(_=None,
 
     return frontiers, searchTimes, pc
 
+
 def solveForTask_pypy(_=None,
                       elapsedTime=0.,
                       g=None, task=None,
@@ -368,6 +366,7 @@ def solveForTask_pypy(_=None,
                         budgetIncrement=budgetIncrement,
                         lowerBound=lowerBound, upperBound=upperBound)
 
+
 def solveForTask_python(_=None,
                         elapsedTime=0.,
                         g=None, tasks=None,
@@ -384,6 +383,7 @@ def solveForTask_python(_=None,
                              maximumFrontiers=maximumFrontiers,
                              budgetIncrement=budgetIncrement,
                              lowerBound=lowerBound, upperBound=upperBound)
+
 
 def solveForTask_bottom(_=None,
                         elapsedTime=0.,
@@ -405,8 +405,8 @@ def solveForTask_bottom(_=None,
                             evaluationTimeout=evaluationTimeout,
                             maximumFrontiers=maximumFrontiers, testing=testing,
                             compile_me=False,
-                            #profile="tower_profile"
-        )
+                            # profile="tower_profile"
+                            )
 
     # this is some benchmarking code that I want to keep around
     # from dreamcoder.domains.tower.towerPrimitives import ttower, executeTower, _empty_tower, TowerState
@@ -417,40 +417,39 @@ def solveForTask_bottom(_=None,
     #     program.evaluate([])(_empty_tower)(TowerState())
     # eprint("Time", time.time()-t0)
     # return
-    
 
     request = tasks[0].request
     assert all(t.request == request for t in tasks), \
         "Expected tasks to all have the same type"
 
-    pcfg = PCFG.from_grammar(g, request).number_rules() # a pcfg
+    pcfg = PCFG.from_grammar(g, request).number_rules()  # a pcfg
 
     splits = pcfg.split(CPUs)
 
-    results = parallelMap(CPUs, 
-                          lambda pps: bottom_up_parallel_worker(g, pcfg, pps, tasks, timeout, maximumFrontiers, evaluationTimeout=evaluationTimeout),
+    results = parallelMap(CPUs,
+                          lambda pps: bottom_up_parallel_worker(g, pcfg, pps, tasks, timeout, maximumFrontiers,
+                                                                evaluationTimeout=evaluationTimeout),
                           splits)
-    number_of_programs = sum(np for _, np in results )
+    number_of_programs = sum(np for _, np in results)
     eprint("Enumerated", number_of_programs, "programs")
-    
-    frontiers = {t: Frontier.combineMany([ fs[t] for fs, _ in results ]).topK(maximumFrontiers[t])
-                 for t in tasks }
+
+    frontiers = {t: Frontier.combineMany([fs[t] for fs, _ in results]).topK(maximumFrontiers[t])
+                 for t in tasks}
 
     searchTimes = {}
     for t in tasks:
-        if len(frontiers[t])==0:
+        if len(frontiers[t]) == 0:
             searchTimes[t] = None
         else:
             searchTimes[t] = frontiers[t].bestPosterior.search_time
 
     return frontiers, searchTimes, number_of_programs
-    
 
 
 def bottom_up_parallel_worker(g, pcfg, pps, tasks, timeout, maximumFrontiers,
                               evaluationTimeout=None):
     from time import time
-    
+
     maximumFrontiers = [maximumFrontiers[t] for t in tasks]
     # store all of the hits in a priority queue
     # we will never maintain maximumFrontier best solutions
@@ -458,12 +457,12 @@ def bottom_up_parallel_worker(g, pcfg, pps, tasks, timeout, maximumFrontiers,
 
     starting = time()
 
-    totalNumberOfPrograms=0
+    totalNumberOfPrograms = 0
 
     for e in pcfg.quantized_enumeration(skeletons=pps):
-        totalNumberOfPrograms+=1
-        
-        if time()-starting>timeout:
+        totalNumberOfPrograms += 1
+
+        if time() - starting > timeout:
             break
 
         prior = None
@@ -494,7 +493,7 @@ def bottom_up_parallel_worker(g, pcfg, pps, tasks, timeout, maximumFrontiers,
     for n in range(len(tasks)):
         for search_time, entry in hits[n]:
             entry.search_time = search_time
-            
+
     frontiers = {tasks[n]: Frontier([e for _, e in hits[n]],
                                     task=tasks[n])
                  for n in range(len(tasks))}
@@ -507,20 +506,22 @@ def bottom_up_parallel_worker(g, pcfg, pps, tasks, timeout, maximumFrontiers,
 
     searchTimes = {
         tasks[n]: None if len(hits[n]) == 0 else \
-        min((-f.logPrior-f.logLikelihood, t) for t,f in hits[n])[1]
+            min((-f.logPrior - f.logLikelihood, t) for t, f in hits[n])[1]
         for n in range(len(tasks))}
 
     return frontiers, totalNumberOfPrograms
 
+
 class EnumerationTimeout(Exception):
     pass
+
 
 def enumerateForTasks(g, tasks, likelihoodModel, _=None,
                       verbose=False,
                       timeout=None,
                       elapsedTime=0.,
                       CPUs=1,
-                      testing=False, #unused
+                      testing=False,  # unused
                       evaluationTimeout=None,
                       lowerBound=0.,
                       upperBound=100.,
@@ -565,14 +566,14 @@ def enumerateForTasks(g, tasks, likelihoodModel, _=None,
                 for n in range(len(tasks)):
                     task = tasks[n]
 
-                    #Warning:changed to max's new likelihood model situation
-                    #likelihood = task.logLikelihood(p, evaluationTimeout)
-                    #if invalid(likelihood):
-                        #continue
+                    # Warning:changed to max's new likelihood model situation
+                    # likelihood = task.logLikelihood(p, evaluationTimeout)
+                    # if invalid(likelihood):
+                    # continue
                     success, likelihood = likelihoodModel.score(p, task)
                     if not success:
                         continue
-                        
+
                     dt = time() - starting + elapsedTime
                     priority = -(likelihood + prior)
                     hits[n].push(priority,
@@ -597,11 +598,6 @@ def enumerateForTasks(g, tasks, likelihoodModel, _=None,
                  for n in range(len(tasks))}
     searchTimes = {
         tasks[n]: None if len(hits[n]) == 0 else \
-        min(t for t,_ in hits[n]) for n in range(len(tasks))}
+            min(t for t, _ in hits[n]) for n in range(len(tasks))}
 
     return frontiers, searchTimes, totalNumberOfPrograms
-
-
-
-
-

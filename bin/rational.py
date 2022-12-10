@@ -40,7 +40,7 @@ def makeTask(name, f, actualParameters):
         ex = ex[::int(len(ex) / N)][:N]
         t = DifferentiableTask(name,
                                arrow(treal, treal),
-                               [((x,),y) for x, y in ex],
+                               [((x,), y) for x, y in ex],
                                BIC=1.,
                                restarts=360, steps=50,
                                likelihoodThreshold=-0.05,
@@ -62,17 +62,22 @@ def randomCoefficient(m=5):
     f = float("%0.1f" % f)
     return f
 
+
 def randomOffset():
     c = randomCoefficient(m=2.5)
+
     def f(x): return x + c
+
     name = "x + %0.1f" % c
     return name, f
+
 
 def randomPolynomial(order):
     coefficients = [randomCoefficient(m=2.5) for _ in range(order + 1)]
 
     def f(x):
-        return sum(c * (x**(order - j)) for j, c in enumerate(coefficients))
+        return sum(c * (x ** (order - j)) for j, c in enumerate(coefficients))
+
     name = ""
     for j, c in enumerate(coefficients):
         e = order - j
@@ -104,6 +109,7 @@ def randomFactored(order):
         for o in offsets:
             p = p * (x + o)
         return p
+
     name = ""
     for c in offsets:
         if c > 0:
@@ -119,7 +125,8 @@ def randomRational():
     nf = random.choice([1, 2])
     dn, d = randomFactored(nf)
 
-    def f(x): return n(x) / d(x)
+    def f(x):
+        return n(x) / d(x)
 
     if no == 0:
         name = "%s/[%s]" % (nn, dn)
@@ -134,7 +141,8 @@ def randomPower():
     c = randomCoefficient()
 
     def f(x):
-        return c * (x**(-e))
+        return c * (x ** (-e))
+
     if e == 1:
         name = "%0.1f/x" % c
     else:
@@ -142,30 +150,31 @@ def randomPower():
 
     return name, f
 
+
 def prettyFunction(f, export):
     import numpy as np
     n = 200
     dx = 10.
 
     import matplotlib
-    #matplotlib.use('Agg')
+    # matplotlib.use('Agg')
 
     import matplotlib.pyplot as plot
 
     figure = plot.figure()
     plot.plot(np.arange(-dx, dx, 0.05),
-              [0.5*f(x/2) for x in np.arange(-dx, dx, 0.05)],
+              [0.5 * f(x / 2) for x in np.arange(-dx, dx, 0.05)],
               linewidth=15,
               color='c')
-    plot.ylim([-dx,dx])
+    plot.ylim([-dx, dx])
     plot.gca().set_xticklabels([])
     plot.gca().set_yticklabels([])
     for tic in plot.gca().xaxis.get_major_ticks():
         tic.tick1On = tic.tick2On = False
-#    plot.xlabel([])
-    #plot.yticks([])
-    #plot.axis('off')
-    plot.grid(color='k',linewidth=2)
+    #    plot.xlabel([])
+    # plot.yticks([])
+    # plot.axis('off')
+    plot.grid(color='k', linewidth=2)
     plot.savefig(export)
     print(export)
     plot.close(figure)
@@ -194,8 +203,10 @@ def drawFunction(n, dx, f, resolution=64):
     data = data / 255.
     # print "upper and lower bounds before
     # resizing",np.max(data),np.min(data),data.dtype
-    data = np.array(Image.fromarray(data).resize(size=(resolution, resolution), resample=Image.BICUBIC).getdata()).reshape((resolution, resolution))
-        
+    data = np.array(
+        Image.fromarray(data).resize(size=(resolution, resolution), resample=Image.BICUBIC).getdata()).reshape(
+        (resolution, resolution))
+
     # print "upper and lower bounds after
     # resizing",np.max(data),np.min(data),data.dtype
 
@@ -264,7 +275,7 @@ RandomParameterization.single = RandomParameterization()
 
 class FeatureExtractor(ImageFeatureExtractor):
     special = 'differentiable'
-    
+
     def __init__(self, tasks, testingTasks=[], cuda=False, H=64):
         self.recomputeTasks = True
         super(FeatureExtractor, self).__init__(inputImageDimension=64,
@@ -278,6 +289,7 @@ class FeatureExtractor(ImageFeatureExtractor):
         p = p.visit(RandomParameterization.single)
 
         def f(x): return p.runWithArguments([x])
+
         t = makeTask(str(p), f, None)
         if t is None:
             return None
@@ -294,12 +306,14 @@ def demo():
     for j, t in enumerate(makeTasks()):  # range(100):
         name, f = t.name, t.f
 
-        prettyFunction(f, f"/tmp/rational_demo/{name.replace('/','$')}.png")
+        prettyFunction(f, f"/tmp/rational_demo/{name.replace('/', '$')}.png")
         print(j, "\n", name)
         a = drawFunction(200, 5., f, resolution=32) * 255
         Image.fromarray(a).convert('RGB').save("/tmp/rational_demo/%d.png" % j)
     assert False
-#demo()    
+
+
+# demo()
 
 def rational_options(p):
     p.add_argument("--smooth", action="store_true",
@@ -375,11 +389,11 @@ if __name__ == "__main__":
 
         assert False
     timestamp = datetime.datetime.now().isoformat()
-    outputDirectory = "experimentOutputs/rational/%s"%timestamp
-    os.system("mkdir -p %s"%outputDirectory)
+    outputDirectory = "experimentOutputs/rational/%s" % timestamp
+    os.system("mkdir -p %s" % outputDirectory)
 
     explorationCompression(baseGrammar, train,
-                           outputPrefix="%s/rational"%outputDirectory,
+                           outputPrefix="%s/rational" % outputDirectory,
                            evaluationTimeout=0.1,
                            testingTasks=test,
                            **arguments)

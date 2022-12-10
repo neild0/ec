@@ -163,9 +163,11 @@ class CanonicalVisitor(object):
         self.numberOfAbstractions += 1
         return Index(self.numberOfAbstractions + d - 1)
 
-    def primitive(self, e, d): return e
+    def primitive(self, e, d):
+        return e
 
-    def invented(self, e, d): return e
+    def invented(self, e, d):
+        return e
 
     def application(self, e, d):
         return Application(e.f.visit(self, d), e.x.visit(self, d))
@@ -198,7 +200,7 @@ def fragmentSize(f, boundVariableCost=0.1, freeVariableCost=0.01):
                 freeVariables += 1
         assert not isinstance(e, FragmentVariable)
     return leaves + boundVariableCost * \
-        boundVariables + freeVariableCost * freeVariables
+           boundVariables + freeVariableCost * freeVariables
 
 
 def primitiveSize(e):
@@ -232,7 +234,7 @@ class RewriteFragments(object):
         except MatchFailure:
             return None
 
-        assert frozenset(bindings.keys()) == frozenset(range(len(bindings))),\
+        assert frozenset(bindings.keys()) == frozenset(range(len(bindings))), \
             "Perhaps the fragment is not in canonical form?"
         e = self.concrete
         for j in range(len(bindings) - 1, -1, -1):
@@ -245,17 +247,21 @@ class RewriteFragments(object):
                         e.x.visit(self, 0))
         return self.tryRewrite(e, numberOfArguments) or e
 
-    def index(self, e, numberOfArguments): return e
+    def index(self, e, numberOfArguments):
+        return e
 
-    def invented(self, e, numberOfArguments): return e
+    def invented(self, e, numberOfArguments):
+        return e
 
-    def primitive(self, e, numberOfArguments): return e
+    def primitive(self, e, numberOfArguments):
+        return e
 
     def abstraction(self, e, numberOfArguments):
         e = Abstraction(e.body.visit(self, 0))
         return self.tryRewrite(e, numberOfArguments) or e
 
-    def rewrite(self, e): return e.visit(self, 0)
+    def rewrite(self, e):
+        return e.visit(self, 0)
 
     @staticmethod
     def rewriteFrontier(frontier, fragment):
@@ -274,7 +280,7 @@ def proposeFragmentsFromFragment(f):
     freeVariables = f.numberOfFreeVariables
     closedSubtrees = Counter(
         subtree for _,
-        subtree in f.walk() if not isinstance(
+                    subtree in f.walk() if not isinstance(
             subtree,
             Index) and subtree.closed)
     del closedSubtrees[f]
@@ -297,7 +303,7 @@ def nontrivial(f):
                     child,
                     Index) and child.i -
                 surroundingAbstractions == f.x.i for surroundingAbstractions,
-                child in f.f.walk()):
+                                                     child in f.f.walk()):
             return False
 
     numberOfHoles = 0
@@ -310,10 +316,10 @@ def nontrivial(f):
             numberOfHoles += 1
         if isinstance(child, Index) and child.free(surroundingAbstractions):
             numberOfVariables += 1
-    #eprint("Fragment %s has %d calls and %d variables and %d primitives"%(f,numberOfHoles,numberOfVariables,numberOfPrimitives))
+    # eprint("Fragment %s has %d calls and %d variables and %d primitives"%(f,numberOfHoles,numberOfVariables,numberOfPrimitives))
 
     return numberOfPrimitives + 0.5 * \
-        (numberOfHoles + numberOfVariables) > 1.5 and numberOfPrimitives >= 1
+           (numberOfHoles + numberOfVariables) > 1.5 and numberOfPrimitives >= 1
 
 
 def violatesLaziness(fragment):
@@ -346,7 +352,6 @@ def violatesLaziness(fragment):
 
 
 def proposeFragmentsFromProgram(p, arity):
-
     def fragment(expression, a, toplevel=True):
         """Generates fragments that unify with expression"""
 

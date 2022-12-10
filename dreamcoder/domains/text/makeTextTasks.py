@@ -29,8 +29,8 @@ characters = [chr(ord('a') + j)
               for j in range(26)] + \
              [chr(ord('A') + j)
               for j in range(26)] + \
-    [str(j) for j in range(10)] + \
-    ['+']
+             [str(j) for j in range(10)] + \
+             ['+']
 
 WORDS = None
 
@@ -82,9 +82,9 @@ def randomWord(minimum=1, predicate=None):
 
 def randomWords(ds, minimum=1, lb=2, ub=4):
     words = [randomWord(minimum=minimum)
-             for _ in range(random.choice(range(lb, ub+1)))]
+             for _ in range(random.choice(range(lb, ub + 1)))]
     s = ""
-    for j,w in enumerate(words):
+    for j, w in enumerate(words):
         if j > 0:
             s += random.choice(ds)
         s += w
@@ -99,7 +99,9 @@ def makeTasks():
 
     problems = []
 
-    def toList(s): return [c for c in s]
+    def toList(s):
+        return [c for c in s]
+
     # Converts strings into a list of characters depending on the type
 
     def preprocess(x):
@@ -122,7 +124,7 @@ def makeTasks():
         problems.append(task)
 
     for d1, d2 in randomPermutation(crossProduct(delimiters, delimiters))[
-            :len(delimiters) * 2]:
+                  :len(delimiters) * 2]:
         if d1 != d2:
             problem("Replace '%s' w/ '%s'" % (d1, d2),
                     [((x,), x.replace(d1, d2))
@@ -149,9 +151,9 @@ def makeTasks():
                  for y in [randomWord()]],
                 needToTrain=True)
     for d1, d2 in randomPermutation(
-        crossProduct(
-            delimiters, delimiters))[
-            :len(delimiters)]:
+            crossProduct(
+                delimiters, delimiters))[
+                  :len(delimiters)]:
         problem("Append two words delimited by '%s%s'" % (d1, d2),
                 [((x, y), x + d1 + d2 + y)
                  for _ in range(NUMBEROFEXAMPLES)
@@ -171,9 +173,9 @@ def makeTasks():
                      for x in [randomWord(minimum=n)]],
                     needToTrain=True)
     for d1, d2 in randomPermutation(
-        crossProduct(
-            delimiters, delimiters))[
-            :len(delimiters)]:
+            crossProduct(
+                delimiters, delimiters))[
+                  :len(delimiters)]:
         problem("Extract word delimited by '%s' - '%s'" % (d1, d2),
                 [((a + d1 + b + d2 + c + d + e,), b)
                  for _ in range(int(NUMBEROFEXAMPLES / 2))
@@ -191,7 +193,7 @@ def makeTasks():
                  for x in [randomWords(' ')]
                  ],
                 needToTrain=True)
-        
+
     for d in delimiters:
         problem("Take first character and append '%s'" % d,
                 [((x,), x[0] + d)
@@ -238,39 +240,38 @@ def makeTasks():
                  for x in [randomWord()]
                  for y in [randomWord()]])
 
-    for n in range(1,6):
-        problem("parentheses around a single word (%s)"%('I'*n),
-                [((w,),"(%s)"%w)
+    for n in range(1, 6):
+        problem("parentheses around a single word (%s)" % ('I' * n),
+                [((w,), "(%s)" % w)
                  for _ in range(NUMBEROFEXAMPLES)
-                 for w in [randomWord()] ])
+                 for w in [randomWord()]])
     problem("parentheses around first word",
-            [((w + " " + s,),"(%s)"%w)
+            [((w + " " + s,), "(%s)" % w)
              for _ in range(NUMBEROFEXAMPLES)
              for w in [randomWord()]
-             for s in [randomWords(" ")] ])
+             for s in [randomWords(" ")]])
     problem("parentheses around second word",
-            [((s,), "(%s)"%(s.split(" ")[1]))
+            [((s,), "(%s)" % (s.split(" ")[1]))
              for _ in range(NUMBEROFEXAMPLES)
-             for s in [randomWords(" ")] ])
+             for s in [randomWords(" ")]])
 
     allowed = [d for d in delimiters if d not in "()"]
-    for d1,d2 in randomPermutation(crossProduct(allowed, allowed))[:len(delimiters)]:
-        problem("parentheses around word delimited by '%s' & '%s'"%(d1,d2),
+    for d1, d2 in randomPermutation(crossProduct(allowed, allowed))[:len(delimiters)]:
+        problem("parentheses around word delimited by '%s' & '%s'" % (d1, d2),
                 [((prefix + d1 + word + d2 + suffix,),
                   prefix + d1 + '(' + word + ')' + d2 + suffix)
                  for _ in range(NUMBEROFEXAMPLES)
                  for prefix in [randomWords("", lb=0, ub=1)]
                  for suffix in [randomWords(allowed, ub=2, lb=1)]
-                 for word in [randomWord()] ])
+                 for word in [randomWord()]])
 
     for n in range(7):
         w = randomWord(minimum=3)
-        problem("ensure suffix `%s`"%w,
-                [ ((s + (w if f else ""),), s + w)
-                  for _ in range(NUMBEROFEXAMPLES)
-                  for s in [randomWords(" ")]
-                  for f in [random.choice([True,False])] ])
-            
+        problem("ensure suffix `%s`" % w,
+                [((s + (w if f else ""),), s + w)
+                 for _ in range(NUMBEROFEXAMPLES)
+                 for s in [randomWords(" ")]
+                 for f in [random.choice([True, False])]])
 
     for p in problems:
         guessConstantStrings(p)
@@ -333,7 +334,7 @@ def loadPBETasks(directory="PBE_Strings_Track"):
                     declarative = True
                     break
         if declarative: continue
-        
+
         examples = list({(tuple(xs), y) for xs, y in examples})
 
         task = Task(name, arrow(*[tstr] * (len(examples[0][0]) + 1)),
@@ -367,7 +368,6 @@ def guessConstantStrings(task):
                                 if f >= T]
     else:
         task.stringConstants = []
-                    
 
     task.BIC = 1.
     task.maxParameters = 1
@@ -403,6 +403,7 @@ if __name__ == "__main__":
 
     if len(sys.argv) > 1 and "json" in sys.argv[1]:
         import json
+
         tasks = makeTasks()
         obj = [t.as_json_dict() for t in tasks]
         json.dump(obj, sys.stdout)

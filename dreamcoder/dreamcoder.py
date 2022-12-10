@@ -4,6 +4,7 @@ import dill
 
 from dreamcoder.compression import induceGrammar
 from dreamcoder.utilities import *
+
 try:
     from dreamcoder.recognition import *
 except:
@@ -33,14 +34,14 @@ class ECResult():
                  hitsAtEachWake=None,
                  timesAtEachWake=None,
                  allFrontiers=None):
-        self.frontiersOverTime = {} # Map from task to [frontier at iteration 1, frontier at iteration 2, ...]
+        self.frontiersOverTime = {}  # Map from task to [frontier at iteration 1, frontier at iteration 2, ...]
         self.hitsAtEachWake = hitsAtEachWake or []
         self.timesAtEachWake = timesAtEachWake or []
         self.testingSearchTime = testingSearchTime or []
         self.searchTimes = searchTimes or []
-        self.trainSearchTime = {} # map from task to search time
-        self.testSearchTime = {} # map from task to search time
-        self.recognitionTaskMetrics = recognitionTaskMetrics or {} 
+        self.trainSearchTime = {}  # map from task to search time
+        self.testSearchTime = {}  # map from task to search time
+        self.recognitionTaskMetrics = recognitionTaskMetrics or {}
         self.recognitionModel = recognitionModel
         self.averageDescriptionLength = averageDescriptionLength or []
         self.parameters = parameters
@@ -48,8 +49,8 @@ class ECResult():
         self.grammars = grammars or []
         self.taskSolutions = taskSolutions or {}
         self.numTestingTasks = numTestingTasks
-        self.sumMaxll = sumMaxll or [] #TODO name change 
-        self.testingSumMaxll = testingSumMaxll or [] #TODO name change
+        self.sumMaxll = sumMaxll or []  # TODO name change
+        self.testingSumMaxll = testingSumMaxll or []  # TODO name change
         self.allFrontiers = allFrontiers or {}
 
     def __repr__(self):
@@ -62,7 +63,6 @@ class ECResult():
         for t in self.recognitionTaskMetrics:
             if isinstance(t, Task) and t not in training: testing.append(t)
         return testing
-
 
     def recordFrontier(self, frontier):
         t = frontier.task
@@ -99,7 +99,8 @@ class ECResult():
                      'taskBatchSize': 'batch'}
 
     @staticmethod
-    def abbreviate(parameter): return ECResult.abbreviations.get(parameter, parameter)
+    def abbreviate(parameter):
+        return ECResult.abbreviations.get(parameter, parameter)
 
     @staticmethod
     def parameterOfAbbreviation(abbreviation):
@@ -109,19 +110,19 @@ class ECResult():
     def clearRecognitionModel(path):
         SUFFIX = '.pickle'
         assert path.endswith(SUFFIX)
-        
-        with open(path,'rb') as handle:
+
+        with open(path, 'rb') as handle:
             result = dill.load(handle)
-        
+
         result.recognitionModel = None
-        
+
         clearedPath = path[:-len(SUFFIX)] + "_graph=True" + SUFFIX
-        with open(clearedPath,'wb') as handle:
+        with open(clearedPath, 'wb') as handle:
             result = dill.dump(result, handle)
         eprint(" [+] Cleared recognition model from:")
-        eprint("     %s"%path)
+        eprint("     %s" % path)
         eprint("     and exported to:")
-        eprint("     %s"%clearedPath)
+        eprint("     %s" % clearedPath)
         eprint("     Use this one for graphing.")
 
 
@@ -201,7 +202,8 @@ def ecIterator(grammar, tasks,
         eprint("Contextual only applies to recognition models, aborting")
         assert False
     if reuseRecognition and not useRecognitionModel:
-        eprint("Reuse of recognition model weights at successive iteration only applies to recognition models, aborting")
+        eprint(
+            "Reuse of recognition model weights at successive iteration only applies to recognition models, aborting")
         assert False
     if matrixRank is not None and not contextual:
         eprint("Matrix rank only applies to contextual recognition models, aborting")
@@ -211,13 +213,12 @@ def ecIterator(grammar, tasks,
         eprint("You specified a testingTimeout, but did not provide any held out testing tasks, aborting.")
         assert False
 
-    
-    #tasks=[t for t in tasks if t.name=="bool-identify-geq-k with k=0" ]
+    # tasks=[t for t in tasks if t.name=="bool-identify-geq-k with k=0" ]
     # We save the parameters that were passed into EC
     # This is for the purpose of exporting the results of the experiment
     parameters = {
         k: v for k,
-        v in locals().items() if k not in {
+                 v in locals().items() if k not in {
             "tasks",
             "use_map_search_times",
             "seed",
@@ -242,7 +243,8 @@ def ecIterator(grammar, tasks,
         for k in {"helmholtzRatio", "recognitionTimeout", "biasOptimal", "mask",
                   "contextual", "matrixRank", "reuseRecognition", "auxiliaryLoss", "ensembleSize"}:
             if k in parameters: del parameters[k]
-    else: del parameters["useRecognitionModel"];
+    else:
+        del parameters["useRecognitionModel"];
     if useRecognitionModel and not contextual:
         if "matrixRank" in parameters:
             del parameters["matrixRank"]
@@ -253,8 +255,9 @@ def ecIterator(grammar, tasks,
     if not useDSL:
         for k in {"structurePenalty", "pseudoCounts", "aic"}:
             del parameters[k]
-    else: del parameters["useDSL"]
-    
+    else:
+        del parameters["useDSL"]
+
     # Uses `parameters` to construct the checkpoint path
     def checkpointPath(iteration, extra=""):
         parameters["iterations"] = iteration
@@ -280,7 +283,7 @@ def ecIterator(grammar, tasks,
 
     def reportMemory():
         eprint(f"Currently using this much memory: {getThisMemoryUsage()}")
-    
+
     # Restore checkpoint
     if resume is not None:
         try:
@@ -294,10 +297,10 @@ def ecIterator(grammar, tasks,
         eprint("Loaded checkpoint from", path)
         grammar = result.grammars[-1] if result.grammars else grammar
     else:  # Start from scratch
-        #for graphing of testing tasks
+        # for graphing of testing tasks
         numTestingTasks = len(testingTasks) if len(testingTasks) != 0 else None
 
-        result = ECResult(parameters=parameters,            
+        result = ECResult(parameters=parameters,
                           grammars=[grammar],
                           taskSolutions={
                               t: Frontier([],
@@ -306,7 +309,6 @@ def ecIterator(grammar, tasks,
                           allFrontiers={
                               t: Frontier([],
                                           task=t) for t in tasks})
-
 
     # Set up the task batcher.
     if taskReranker == 'default':
@@ -335,9 +337,10 @@ def ecIterator(grammar, tasks,
             enumerationTimeout = testingTimeout
         if result.recognitionModel is not None:
             _enumerator = lambda *args, **kw: result.recognitionModel.enumerateFrontiers(*args, **kw)
-        else: _enumerator = lambda *args, **kw: multicoreEnumeration(result.grammars[-1], *args, **kw)
-        enumerator = lambda *args, **kw: _enumerator(*args, 
-                                                     maximumFrontier=maximumFrontier, 
+        else:
+            _enumerator = lambda *args, **kw: multicoreEnumeration(result.grammars[-1], *args, **kw)
+        enumerator = lambda *args, **kw: _enumerator(*args,
+                                                     maximumFrontier=maximumFrontier,
                                                      CPUs=CPUs, evaluationTimeout=evaluationTimeout,
                                                      solver=solver,
                                                      **kw)
@@ -346,14 +349,21 @@ def ecIterator(grammar, tasks,
 
         recognizer = result.recognitionModel
         updateTaskSummaryMetrics(result.recognitionTaskMetrics, trainingTimes, 'recognitionBestTimes')
-        updateTaskSummaryMetrics(result.recognitionTaskMetrics, recognizer.taskGrammarLogProductions(tasks), 'taskLogProductions')
-        updateTaskSummaryMetrics(result.recognitionTaskMetrics, recognizer.taskGrammarEntropies(tasks), 'taskGrammarEntropies')
-        updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskAuxiliaryLossLayer(tasks), 'taskAuxiliaryLossLayer')
-        
+        updateTaskSummaryMetrics(result.recognitionTaskMetrics, recognizer.taskGrammarLogProductions(tasks),
+                                 'taskLogProductions')
+        updateTaskSummaryMetrics(result.recognitionTaskMetrics, recognizer.taskGrammarEntropies(tasks),
+                                 'taskGrammarEntropies')
+        updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskAuxiliaryLossLayer(tasks),
+                                 'taskAuxiliaryLossLayer')
+
         updateTaskSummaryMetrics(result.recognitionTaskMetrics, testingTimes, 'heldoutTestingTimes')
-        updateTaskSummaryMetrics(result.recognitionTaskMetrics, recognizer.taskGrammarLogProductions(testingTasks), 'heldoutTaskLogProductions')
-        updateTaskSummaryMetrics(result.recognitionTaskMetrics, recognizer.taskGrammarEntropies(testingTasks), 'heldoutTaskGrammarEntropies')
-        updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskAuxiliaryLossLayer(testingTasks), 'heldoutAuxiliaryLossLayer')
+        updateTaskSummaryMetrics(result.recognitionTaskMetrics, recognizer.taskGrammarLogProductions(testingTasks),
+                                 'heldoutTaskLogProductions')
+        updateTaskSummaryMetrics(result.recognitionTaskMetrics, recognizer.taskGrammarEntropies(testingTasks),
+                                 'heldoutTaskGrammarEntropies')
+        updateTaskSummaryMetrics(result.recognitionTaskMetrics,
+                                 result.recognitionModel.taskAuxiliaryLossLayer(testingTasks),
+                                 'heldoutAuxiliaryLossLayer')
 
         updateTaskSummaryMetrics(result.recognitionTaskMetrics, {f.task: f
                                                                  for f in trainFrontiers + testFrontiers
@@ -362,12 +372,12 @@ def ecIterator(grammar, tasks,
         SUFFIX = ".pickle"
         assert path.endswith(SUFFIX)
         path = path[:-len(SUFFIX)] + "_FTM=True" + SUFFIX
-        with open(path, "wb") as handle: dill.dump(result, handle)
+        with open(path, "wb") as handle:
+            dill.dump(result, handle)
         if useRecognitionModel: ECResult.clearRecognitionModel(path)
-            
+
         sys.exit(0)
-    
-    
+
     for j in range(resume or 0, iterations):
         if storeTaskMetrics and rewriteTaskMetrics:
             eprint("Resetting task metrics for next iteration.")
@@ -381,11 +391,11 @@ def ecIterator(grammar, tasks,
             evaluateOnTestingTasks(result, testingTasks, grammar,
                                    CPUs=CPUs, maximumFrontier=maximumFrontier,
                                    solver=solver,
-                                   enumerationTimeout=testingTimeout, evaluationTimeout=evaluationTimeout)            
-        # If we have to also enumerate Helmholtz frontiers,
+                                   enumerationTimeout=testingTimeout, evaluationTimeout=evaluationTimeout)
+            # If we have to also enumerate Helmholtz frontiers,
         # do this extra sneaky in the background
         if useRecognitionModel and biasOptimal and helmholtzRatio > 0 and \
-           all( str(p) != "REAL" for p in grammar.primitives ): # real numbers don't support this
+                all(str(p) != "REAL" for p in grammar.primitives):  # real numbers don't support this
             # the DSL is fixed, so the dreams are also fixed. don't recompute them.
             if useDSL or 'helmholtzFrontiers' not in locals():
                 helmholtzFrontiers = backgroundHelmholtzEnumeration(tasks, grammar, enumerationTimeout,
@@ -414,7 +424,7 @@ def ecIterator(grammar, tasks,
             result.trainSearchTime = {t: tm for t, tm in times.items() if tm is not None}
         else:
             eprint("Skipping top-down enumeration because we are not using the generative model")
-            topDownFrontiers, times = [], {t: None for t in wakingTaskBatch }
+            topDownFrontiers, times = [], {t: None for t in wakingTaskBatch}
 
         tasksHitTopDown = {f.task for f in topDownFrontiers if not f.empty}
         result.hitsAtEachWake.append(len(tasksHitTopDown))
@@ -423,7 +433,7 @@ def ecIterator(grammar, tasks,
 
         # Combine topDownFrontiers from this task batch with all frontiers.
         for f in topDownFrontiers:
-            if f.task not in result.allFrontiers: continue # backward compatibility with old checkpoints
+            if f.task not in result.allFrontiers: continue  # backward compatibility with old checkpoints
             result.allFrontiers[f.task] = result.allFrontiers[f.task].combine(f).topK(maximumFrontier)
 
         eprint("Frontiers discovered top down: " + str(len(tasksHitTopDown)))
@@ -437,22 +447,22 @@ def ecIterator(grammar, tasks,
                 previousRecognitionModel = result.recognitionModel
 
             thisRatio = helmholtzRatio
-            #if j == 0 and not biasOptimal: thisRatio = 0
-            if all( f.empty for f in result.allFrontiers.values() ): thisRatio = 1.                
+            # if j == 0 and not biasOptimal: thisRatio = 0
+            if all(f.empty for f in result.allFrontiers.values()): thisRatio = 1.
 
             tasksHitBottomUp = \
-             sleep_recognition(result, grammar, wakingTaskBatch, tasks, testingTasks, result.allFrontiers.values(),
-                               ensembleSize=ensembleSize, featureExtractor=featureExtractor, mask=mask,
-                               activation=activation, contextual=contextual, biasOptimal=biasOptimal,
-                               previousRecognitionModel=previousRecognitionModel, matrixRank=matrixRank,
-                               timeout=recognitionTimeout, evaluationTimeout=evaluationTimeout,
-                               enumerationTimeout=enumerationTimeout,
-                               helmholtzRatio=thisRatio, helmholtzFrontiers=helmholtzFrontiers(),
-                               auxiliaryLoss=auxiliaryLoss, cuda=cuda, CPUs=CPUs, solver=solver,
-                               recognitionSteps=recognitionSteps, maximumFrontier=maximumFrontier)
+                sleep_recognition(result, grammar, wakingTaskBatch, tasks, testingTasks, result.allFrontiers.values(),
+                                  ensembleSize=ensembleSize, featureExtractor=featureExtractor, mask=mask,
+                                  activation=activation, contextual=contextual, biasOptimal=biasOptimal,
+                                  previousRecognitionModel=previousRecognitionModel, matrixRank=matrixRank,
+                                  timeout=recognitionTimeout, evaluationTimeout=evaluationTimeout,
+                                  enumerationTimeout=enumerationTimeout,
+                                  helmholtzRatio=thisRatio, helmholtzFrontiers=helmholtzFrontiers(),
+                                  auxiliaryLoss=auxiliaryLoss, cuda=cuda, CPUs=CPUs, solver=solver,
+                                  recognitionSteps=recognitionSteps, maximumFrontier=maximumFrontier)
 
             showHitMatrix(tasksHitTopDown, tasksHitBottomUp, wakingTaskBatch)
-            
+
         # Record the new topK solutions
         result.taskSolutions = {f.task: f.topK(topK)
                                 for f in result.allFrontiers.values()}
@@ -462,10 +472,10 @@ def ecIterator(grammar, tasks,
         updateTaskSummaryMetrics(result.recognitionTaskMetrics, {f.task: f
                                                                  for f in result.allFrontiers.values()
                                                                  if len(f) > 0},
-                                 'frontier')                
-        
+                                 'frontier')
+
         # Sleep-G
-        if useDSL and not(noConsolidation):
+        if useDSL and not (noConsolidation):
             eprint(f"Currently using this much memory: {getThisMemoryUsage()}")
             grammar = consolidate(result, grammar, topK=topK, pseudoCounts=pseudoCounts, arity=arity, aic=aic,
                                   structurePenalty=structurePenalty, compressor=compressor, CPUs=CPUs,
@@ -474,7 +484,7 @@ def ecIterator(grammar, tasks,
         else:
             eprint("Skipping consolidation.")
             result.grammars.append(grammar)
-            
+
         if outputPrefix is not None:
             path = checkpointPath(j + 1)
             with open(path, "wb") as handle:
@@ -482,13 +492,12 @@ def ecIterator(grammar, tasks,
                     dill.dump(result, handle)
                 except TypeError as e:
                     eprint(result)
-                    assert(False)
+                    assert (False)
             eprint("Exported checkpoint to", path)
             if useRecognitionModel:
                 ECResult.clearRecognitionModel(path)
 
-            graphPrimitives(result, "%s_primitives_%d_"%(outputPrefix,j))
-            
+            graphPrimitives(result, "%s_primitives_%d_" % (outputPrefix, j))
 
         yield result
 
@@ -509,23 +518,28 @@ def showHitMatrix(top, bottom, tasks):
                                              len(top & bottomMiss),
                                              len(top & bottom)))
 
+
 def evaluateOnTestingTasks(result, testingTasks, grammar, _=None,
-                           CPUs=None, solver=None, maximumFrontier=None, enumerationTimeout=None, evaluationTimeout=None):
+                           CPUs=None, solver=None, maximumFrontier=None, enumerationTimeout=None,
+                           evaluationTimeout=None):
     if result.recognitionModel is not None:
         recognizer = result.recognitionModel
         testingFrontiers, times = \
-         recognizer.enumerateFrontiers(testingTasks, 
-                                       CPUs=CPUs,
-                                       solver=solver,
-                                       maximumFrontier=maximumFrontier,
-                                       enumerationTimeout=enumerationTimeout,
-                                       evaluationTimeout=evaluationTimeout,
-                                       testing=True)
-        updateTaskSummaryMetrics(result.recognitionTaskMetrics, recognizer.taskGrammarLogProductions(testingTasks), 'heldoutTaskLogProductions')
-        updateTaskSummaryMetrics(result.recognitionTaskMetrics, recognizer.taskGrammarEntropies(testingTasks), 'heldoutTaskGrammarEntropies')
-        updateTaskSummaryMetrics(result.recognitionTaskMetrics, recognizer.taskGrammarEntropies(testingTasks), 'heldoutTaskGrammarEntropies')
+            recognizer.enumerateFrontiers(testingTasks,
+                                          CPUs=CPUs,
+                                          solver=solver,
+                                          maximumFrontier=maximumFrontier,
+                                          enumerationTimeout=enumerationTimeout,
+                                          evaluationTimeout=evaluationTimeout,
+                                          testing=True)
+        updateTaskSummaryMetrics(result.recognitionTaskMetrics, recognizer.taskGrammarLogProductions(testingTasks),
+                                 'heldoutTaskLogProductions')
+        updateTaskSummaryMetrics(result.recognitionTaskMetrics, recognizer.taskGrammarEntropies(testingTasks),
+                                 'heldoutTaskGrammarEntropies')
+        updateTaskSummaryMetrics(result.recognitionTaskMetrics, recognizer.taskGrammarEntropies(testingTasks),
+                                 'heldoutTaskGrammarEntropies')
     else:
-        testingFrontiers, times = multicoreEnumeration(grammar, testingTasks, 
+        testingFrontiers, times = multicoreEnumeration(grammar, testingTasks,
                                                        solver=solver,
                                                        maximumFrontier=maximumFrontier,
                                                        enumerationTimeout=enumerationTimeout,
@@ -534,24 +548,24 @@ def evaluateOnTestingTasks(result, testingTasks, grammar, _=None,
                                                        testing=True)
     updateTaskSummaryMetrics(result.recognitionTaskMetrics, times, 'heldoutTestingTimes')
     updateTaskSummaryMetrics(result.recognitionTaskMetrics,
-                                     {f.task: f for f in testingFrontiers if len(f) > 0 },
-                                     'frontier')
+                             {f.task: f for f in testingFrontiers if len(f) > 0},
+                             'frontier')
     for f in testingFrontiers: result.recordFrontier(f)
     result.testSearchTime = {t: tm for t, tm in times.items() if tm is not None}
-    times = [t for t in times.values() if t is not None ]
+    times = [t for t in times.values() if t is not None]
     eprint("\n".join(f.summarize() for f in testingFrontiers))
     summaryStatistics("Testing tasks", times)
     eprint("Hits %d/%d testing tasks" % (len(times), len(testingTasks)))
     result.testingSearchTime.append(times)
 
-        
-def default_wake_generative(grammar, tasks, 
-                    maximumFrontier=None,
-                    enumerationTimeout=None,
-                    CPUs=None,
-                    solver=None,
-                    evaluationTimeout=None):
-    topDownFrontiers, times = multicoreEnumeration(grammar, tasks, 
+
+def default_wake_generative(grammar, tasks,
+                            maximumFrontier=None,
+                            enumerationTimeout=None,
+                            CPUs=None,
+                            solver=None,
+                            evaluationTimeout=None):
+    topDownFrontiers, times = multicoreEnumeration(grammar, tasks,
                                                    maximumFrontier=maximumFrontier,
                                                    enumerationTimeout=enumerationTimeout,
                                                    CPUs=CPUs,
@@ -562,6 +576,7 @@ def default_wake_generative(grammar, tasks,
     summaryStatistics("Generative model", [t for t in times.values() if t is not None])
     return topDownFrontiers, times
 
+
 def sleep_recognition(result, grammar, taskBatch, tasks, testingTasks, allFrontiers, _=None,
                       ensembleSize=1, featureExtractor=None, matrixRank=None, mask=False,
                       activation=None, contextual=True, biasOptimal=True,
@@ -569,9 +584,11 @@ def sleep_recognition(result, grammar, taskBatch, tasks, testingTasks, allFronti
                       timeout=None, enumerationTimeout=None, evaluationTimeout=None,
                       helmholtzRatio=None, helmholtzFrontiers=None, maximumFrontier=None,
                       auxiliaryLoss=None, cuda=None, CPUs=None, solver=None):
-    eprint("Using an ensemble size of %d. Note that we will only store and test on the best recognition model." % ensembleSize)
+    eprint(
+        "Using an ensemble size of %d. Note that we will only store and test on the best recognition model." % ensembleSize)
 
-    featureExtractorObjects = [featureExtractor(tasks, testingTasks=testingTasks, cuda=cuda) for i in range(ensembleSize)]
+    featureExtractorObjects = [featureExtractor(tasks, testingTasks=testingTasks, cuda=cuda) for i in
+                               range(ensembleSize)]
     recognizers = [RecognitionModel(featureExtractorObjects[i],
                                     grammar,
                                     mask=mask,
@@ -582,10 +599,10 @@ def sleep_recognition(result, grammar, taskBatch, tasks, testingTasks, allFronti
                                     previousRecognitionModel=previousRecognitionModel,
                                     id=i) for i in range(ensembleSize)]
     eprint(f"Currently using this much memory: {getThisMemoryUsage()}")
-    trainedRecognizers = parallelMap(min(CPUs,len(recognizers)),
+    trainedRecognizers = parallelMap(min(CPUs, len(recognizers)),
                                      lambda recognizer: recognizer.train(allFrontiers,
                                                                          biasOptimal=biasOptimal,
-                                                                         helmholtzFrontiers=helmholtzFrontiers, 
+                                                                         helmholtzFrontiers=helmholtzFrontiers,
                                                                          CPUs=CPUs,
                                                                          evaluationTimeout=evaluationTimeout,
                                                                          timeout=timeout,
@@ -605,19 +622,20 @@ def sleep_recognition(result, grammar, taskBatch, tasks, testingTasks, allFronti
     for recIndex, recognizer in enumerate(trainedRecognizers):
         eprint("Enumerating from recognizer %d of %d" % (recIndex, len(trainedRecognizers)))
         bottomupFrontiers, allRecognitionTimes = \
-                        recognizer.enumerateFrontiers(taskBatch, 
-                                                      CPUs=CPUs,
-                                                      maximumFrontier=maximumFrontier,
-                                                      enumerationTimeout=enumerationTimeout,
-                                                      evaluationTimeout=evaluationTimeout,
-                                                      solver=solver)
+            recognizer.enumerateFrontiers(taskBatch,
+                                          CPUs=CPUs,
+                                          maximumFrontier=maximumFrontier,
+                                          enumerationTimeout=enumerationTimeout,
+                                          evaluationTimeout=evaluationTimeout,
+                                          solver=solver)
         ensembleFrontiers.append(bottomupFrontiers)
         ensembleTimes.append([t for t in allRecognitionTimes.values() if t is not None])
         ensembleRecognitionTimes.append(allRecognitionTimes)
 
         recognizerTasksHitBottomUp = {f.task for f in bottomupFrontiers if not f.empty}
         totalTasksHitBottomUp.update(recognizerTasksHitBottomUp)
-        eprint("Recognizer %d solved %d/%d tasks; total tasks solved is now %d." % (recIndex, len(recognizerTasksHitBottomUp), len(tasks), len(totalTasksHitBottomUp)))
+        eprint("Recognizer %d solved %d/%d tasks; total tasks solved is now %d." % (
+        recIndex, len(recognizerTasksHitBottomUp), len(tasks), len(totalTasksHitBottomUp)))
         if len(recognizerTasksHitBottomUp) >= mostTasks:
             # TODO (cathywong): could consider keeping the one that put the highest likelihood on the solved tasks.
             bestRecognizer = recIndex
@@ -627,10 +645,14 @@ def sleep_recognition(result, grammar, taskBatch, tasks, testingTasks, allFronti
     result.recognitionModel = trainedRecognizers[bestRecognizer]
     result.trainSearchTime = {tk: tm for tk, tm in ensembleRecognitionTimes[bestRecognizer].items()
                               if tm is not None}
-    updateTaskSummaryMetrics(result.recognitionTaskMetrics, ensembleRecognitionTimes[bestRecognizer], 'recognitionBestTimes')
-    updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskHiddenStates(tasks), 'hiddenState')
-    updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskGrammarLogProductions(tasks), 'taskLogProductions')
-    updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskGrammarEntropies(tasks), 'taskGrammarEntropies')
+    updateTaskSummaryMetrics(result.recognitionTaskMetrics, ensembleRecognitionTimes[bestRecognizer],
+                             'recognitionBestTimes')
+    updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskHiddenStates(tasks),
+                             'hiddenState')
+    updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskGrammarLogProductions(tasks),
+                             'taskLogProductions')
+    updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskGrammarEntropies(tasks),
+                             'taskGrammarEntropies')
     if contextual:
         updateTaskSummaryMetrics(result.recognitionTaskMetrics,
                                  result.recognitionModel.taskGrammarStartProductions(tasks),
@@ -649,10 +671,10 @@ def sleep_recognition(result, grammar, taskBatch, tasks, testingTasks, allFronti
     # and then combine w/ original frontiers
     for bottomupFrontiers in ensembleFrontiers:
         for b in bottomupFrontiers:
-            if b.task not in result.allFrontiers: continue # backwards compatibility with old checkpoints
-            result.allFrontiers[b.task] = result.allFrontiers[b.task].\
-                                          combine(grammar.rescoreFrontier(b)).\
-                                          topK(maximumFrontier)
+            if b.task not in result.allFrontiers: continue  # backwards compatibility with old checkpoints
+            result.allFrontiers[b.task] = result.allFrontiers[b.task]. \
+                combine(grammar.rescoreFrontier(b)). \
+                topK(maximumFrontier)
 
     eprint("Frontiers discovered bottom up: " + str(len(totalTasksHitBottomUp)))
     eprint("Total frontiers: " + str(len([f for f in result.allFrontiers.values() if not f.empty])))
@@ -664,6 +686,7 @@ def sleep_recognition(result, grammar, taskBatch, tasks, testingTasks, allFronti
                "\tmax:", int(max(ensembleTimes[bestRecognizer]) + 0.5),
                "\tstandard deviation", int(standardDeviation(ensembleTimes[bestRecognizer]) + 0.5))
     return totalTasksHitBottomUp
+
 
 def consolidate(result, grammar, _=None, topK=None, arity=None, pseudoCounts=None, aic=None,
                 structurePenalty=None, compressor=None, CPUs=None, iteration=None):
@@ -680,7 +703,7 @@ def consolidate(result, grammar, _=None, topK=None, arity=None, pseudoCounts=Non
     needToSupervise = {f.task for f in result.allFrontiers.values()
                        if f.task.supervision is not None and f.empty}
     compressionFrontiers = [f.replaceWithSupervised(grammar) if f.task in needToSupervise else f
-                            for f in result.allFrontiers.values() ]
+                            for f in result.allFrontiers.values()]
 
     if len([f for f in compressionFrontiers if not f.empty]) == 0:
         eprint("No compression frontiers; not inducing a grammar this iteration.")
@@ -695,13 +718,11 @@ def consolidate(result, grammar, _=None, topK=None, arity=None, pseudoCounts=Non
         for c in compressionFrontiers:
             result.allFrontiers[c.task] = c.topK(0) if c in needToSupervise else c
 
-
     result.grammars.append(grammar)
     eprint("Grammar after iteration %d:" % (iteration + 1))
     eprint(grammar)
-    
+
     return grammar
-    
 
 
 def commandlineArguments(_=None,
@@ -725,7 +746,7 @@ def commandlineArguments(_=None,
                          taskBatchSize=None, taskReranker="default",
                          extras=None,
                          storeTaskMetrics=False,
-                        rewriteTaskMetrics=True):
+                         rewriteTaskMetrics=True):
     if cuda is None:
         cuda = torch.cuda.is_available()
     print("CUDA is available?:", torch.cuda.is_available())
@@ -757,7 +778,7 @@ def commandlineArguments(_=None,
         "--topK",
         default=topK,
         help="When training generative and discriminative models, we train them to fit the top K programs. Ideally we would train them to fit the entire frontier, but this is often intractable. default: %d" %
-        topK,
+             topK,
         type=int)
     parser.add_argument("-p", "--pseudoCounts",
                         default=pseudoCounts,
@@ -830,7 +851,7 @@ def commandlineArguments(_=None,
         dest="testEvery",
         default=1,
         help="Run heldout testing every X iterations."
-        )
+    )
     parser.add_argument(
         "--seed",
         type=int,
@@ -845,7 +866,7 @@ def commandlineArguments(_=None,
         default=activation,
         help="""Activation function for neural recognition model.
                         Default: %s""" %
-        activation)
+             activation)
     parser.add_argument(
         "--solver",
         choices=[
@@ -856,19 +877,19 @@ def commandlineArguments(_=None,
         default=solver,
         help="""Solver for enumeration.
                         Default: %s""" %
-        solver)
+             solver)
     parser.add_argument(
         "-r",
         "--Helmholtz",
         dest="helmholtzRatio",
         help="""When training recognition models, what fraction of the training data should be samples from the generative model? Default %f""" %
-        helmholtzRatio,
+             helmholtzRatio,
         default=helmholtzRatio,
         type=float)
     parser.add_argument(
         "--compressor",
         default=compressor,
-        choices=["pypy","rust","vs","pypy_vs","ocaml","vs_factored","memorize"])
+        choices=["pypy", "rust", "vs", "pypy_vs", "ocaml", "vs_factored", "memorize"])
     parser.add_argument(
         "--matrixRank",
         help="Maximum rank of bigram transition matrix for contextual recognition model. Defaults to full rank.",
@@ -922,13 +943,13 @@ def commandlineArguments(_=None,
         default=True,
         help="Whether to store task metrics directly in the ECResults.",
         action="store_true"
-        )
+    )
     parser.add_argument(
         "--rewriteTaskMetrics",
         dest="rewriteTaskMetrics",
         help="Whether to rewrite a new task metrics dictionary at each iteration, rather than retaining the old.",
         action="store_true"
-        )
+    )
     parser.add_argument("--addTaskMetrics",
                         dest="addTaskMetrics",
                         help="Creates a checkpoint with task metrics and no recognition model for graphing.",
@@ -959,20 +980,20 @@ def commandlineArguments(_=None,
         sys.exit(0)
     else:
         del v["clear-recognition"]
-        
+
     if v["primitive-graph"] is not None:
-        
-        for n,pg in enumerate(v["primitive-graph"]):
-            with open(pg,'rb') as handle:
+
+        for n, pg in enumerate(v["primitive-graph"]):
+            with open(pg, 'rb') as handle:
                 result = dill.load(handle)
-            graphPrimitives(result,f"figures/deepProgramLearning/{sys.argv[0]}{n}",view=True)
+            graphPrimitives(result, f"figures/deepProgramLearning/{sys.argv[0]}{n}", view=True)
         sys.exit(0)
     else:
         del v["primitive-graph"]
 
     if v["addTaskMetrics"] is not None:
         for path in v["addTaskMetrics"]:
-            with open(path,'rb') as handle:
+            with open(path, 'rb') as handle:
                 result = dill.load(handle)
             addTaskMetrics(result, path)
         sys.exit(0)
@@ -988,23 +1009,25 @@ def commandlineArguments(_=None,
         eprint("The recognition model has",
                sum(p.numel() for p in result.recognitionModel.parameters() if p.requires_grad),
                "trainable parameters and",
-               sum(p.numel() for p in result.recognitionModel.parameters() ),
+               sum(p.numel() for p in result.recognitionModel.parameters()),
                "total parameters.\n",
                "The feature extractor accounts for",
-               sum(p.numel() for p in result.recognitionModel.featureExtractor.parameters() ),
+               sum(p.numel() for p in result.recognitionModel.featureExtractor.parameters()),
                "of those parameters.\n",
                "The grammar builder accounts for",
-               sum(p.numel() for p in result.recognitionModel.grammarBuilder.parameters() ),
+               sum(p.numel() for p in result.recognitionModel.grammarBuilder.parameters()),
                "of those parameters.\n")
         sys.exit(0)
     del v["countParameters"]
-        
-        
+
     return v
+
 
 def addTaskMetrics(result, path):
     """Adds a task metrics to ECResults that were pickled without them."""
     with torch.no_grad(): return addTaskMetrics_(result, path)
+
+
 def addTaskMetrics_(result, path):
     SUFFIX = '.pickle'
     assert path.endswith(SUFFIX)
@@ -1028,17 +1051,29 @@ def addTaskMetrics_(result, path):
         images = {t: t.highresolution for t in tasks}
         updateTaskSummaryMetrics(result.recognitionTaskMetrics, images, 'taskImages')
 
-    updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.auxiliaryPrimitiveEmbeddings(), 'auxiliaryPrimitiveEmbeddings')
-    updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskAuxiliaryLossLayer(tasks), 'taskAuxiliaryLossLayer')
-    updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskAuxiliaryLossLayer(everyTask), 'every_auxiliaryLossLayer')
+    updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.auxiliaryPrimitiveEmbeddings(),
+                             'auxiliaryPrimitiveEmbeddings')
+    updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskAuxiliaryLossLayer(tasks),
+                             'taskAuxiliaryLossLayer')
+    updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskAuxiliaryLossLayer(everyTask),
+                             'every_auxiliaryLossLayer')
 
-    updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskGrammarFeatureLogProductions(tasks), 'grammarFeatureLogProductions')
-    updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskGrammarFeatureLogProductions(everyTask), 'every_grammarFeatureLogProductions')
-    updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskGrammarLogProductions(tasks), 'contextualLogProductions')
-    updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskGrammarLogProductions(everyTask), 'every_contextualLogProductions')
-    updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskHiddenStates(tasks), 'hiddenState')
-    updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskHiddenStates(everyTask), 'every_hiddenState')
-    g = result.grammars[-2] # the final entry in result.grammars is a grammar that we have not used yet
+    updateTaskSummaryMetrics(result.recognitionTaskMetrics,
+                             result.recognitionModel.taskGrammarFeatureLogProductions(tasks),
+                             'grammarFeatureLogProductions')
+    updateTaskSummaryMetrics(result.recognitionTaskMetrics,
+                             result.recognitionModel.taskGrammarFeatureLogProductions(everyTask),
+                             'every_grammarFeatureLogProductions')
+    updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskGrammarLogProductions(tasks),
+                             'contextualLogProductions')
+    updateTaskSummaryMetrics(result.recognitionTaskMetrics,
+                             result.recognitionModel.taskGrammarLogProductions(everyTask),
+                             'every_contextualLogProductions')
+    updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskHiddenStates(tasks),
+                             'hiddenState')
+    updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskHiddenStates(everyTask),
+                             'every_hiddenState')
+    g = result.grammars[-2]  # the final entry in result.grammars is a grammar that we have not used yet
     updateTaskSummaryMetrics(result.recognitionTaskMetrics, {f.task: f.expectedProductionUses(g)
                                                              for f in result.taskSolutions.values()
                                                              if len(f) > 0},
@@ -1046,32 +1081,33 @@ def addTaskMetrics_(result, path):
     updateTaskSummaryMetrics(result.recognitionTaskMetrics, {f.task: f.expectedProductionUses(g)
                                                              for t, metrics in result.recognitionTaskMetrics.items()
                                                              if "frontier" in metrics
-                                                             for f in [metrics["frontier"]] 
+                                                             for f in [metrics["frontier"]]
                                                              if len(f) > 0},
                              'every_expectedProductionUses')
     if False:
         eprint(f"About to do an expensive Monte Carlo simulation w/ {len(tasks)} tasks")
         updateTaskSummaryMetrics(result.recognitionTaskMetrics,
-                                 {task: result.recognitionModel.grammarOfTask(task).untorch().expectedUsesMonteCarlo(task.request, debug=False)
-                                  for task in tasks },
+                                 {task: result.recognitionModel.grammarOfTask(task).untorch().expectedUsesMonteCarlo(
+                                     task.request, debug=False)
+                                  for task in tasks},
                                  'expectedProductionUsesMonteCarlo')
     try:
         updateTaskSummaryMetrics(result.recognitionTaskMetrics,
                                  result.recognitionModel.taskGrammarStartProductions(tasks),
                                  'startProductions')
-    except: pass # can fail if we do not have a contextual model
+    except:
+        pass  # can fail if we do not have a contextual model
 
-    #updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskGrammarLogProductions(tasks), 'task_no_parent_log_productions')
-    #updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskGrammarEntropies(tasks), 'taskGrammarEntropies')
+    # updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskGrammarLogProductions(tasks), 'task_no_parent_log_productions')
+    # updateTaskSummaryMetrics(result.recognitionTaskMetrics, result.recognitionModel.taskGrammarEntropies(tasks), 'taskGrammarEntropies')
 
     result.recognitionModel = None
-        
+
     clearedPath = path[:-len(SUFFIX)] + "_graph=True" + SUFFIX
-    with open(clearedPath,'wb') as handle:
+    with open(clearedPath, 'wb') as handle:
         result = dill.dump(result, handle)
     eprint(" [+] Cleared recognition model from:")
-    eprint("     %s"%path)
+    eprint("     %s" % path)
     eprint("     and exported to:")
-    eprint("     %s"%clearedPath)
+    eprint("     %s" % clearedPath)
     eprint("     Use this one for graphing.")
-

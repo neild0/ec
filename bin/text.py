@@ -7,7 +7,6 @@ from dreamcoder.domains.text.main import main, LearnedFeatureExtractor, text_opt
 from dreamcoder.dreamcoder import commandlineArguments
 from dreamcoder.utilities import numberOfCPUs
 
-
 if __name__ == '__main__':
     arguments = commandlineArguments(
         recognitionTimeout=7200,

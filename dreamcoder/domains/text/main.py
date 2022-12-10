@@ -33,13 +33,16 @@ class ConstantInstantiateVisitor(object):
 
 try:
     from dreamcoder.recognition import *
+
+
     class LearnedFeatureExtractor(RecurrentFeatureExtractor):
         special = 'string'
 
         def tokenize(self, examples):
-            def tokenize_example(xs,y):
+            def tokenize_example(xs, y):
                 if not isinstance(y, list): y = [y]
-                return xs,y
+                return xs, y
+
             return [tokenize_example(*e) for e in examples]
 
         def __init__(self, tasks, testingTasks=[], cuda=False):
@@ -63,6 +66,7 @@ try:
 except:
     pass
 
+
 ### COMPETITION CODE
 
 def competeOnOneTask(checkpoint, task,
@@ -70,44 +74,43 @@ def competeOnOneTask(checkpoint, task,
     if checkpoint.recognitionModel is not None:
         recognizer = checkpoint.recognitionModel
         challengeFrontiers, times, bestSearchTime = \
-                recognizer.enumerateFrontiers([task], 
-                                              CPUs=CPUs,
-                                              maximumFrontier=1,
-                                              enumerationTimeout=timeout,
-                                              evaluationTimeout=evaluationTimeout)
+            recognizer.enumerateFrontiers([task],
+                                          CPUs=CPUs,
+                                          maximumFrontier=1,
+                                          enumerationTimeout=timeout,
+                                          evaluationTimeout=evaluationTimeout)
     else:
         challengeFrontiers, times, bestSearchTimes = \
-                multicoreEnumeration(checkpoint.grammars[-1], [task], 
-                                     CPUs=CPUs,
-                                     maximumFrontier=1,
-                                     enumerationTimeout=timeout,
-                                     evaluationTimeout=evaluationTimeout)
+            multicoreEnumeration(checkpoint.grammars[-1], [task],
+                                 CPUs=CPUs,
+                                 maximumFrontier=1,
+                                 enumerationTimeout=timeout,
+                                 evaluationTimeout=evaluationTimeout)
     if len(times) == 0: return None, task
     assert len(times) == 1
     return times[0], task
 
-        
 
 def sygusCompetition(checkpoints, tasks):
     from pathos.multiprocessing import Pool
     import datetime
-    
+
     # map from task to list of search times, one for each checkpoint.
     # search time will be None if it is not solved
     searchTimes = {t: [] for t in tasks}
 
-    CPUs = int(8/len(checkpoints))
-    maxWorkers = int(numberOfCPUs()/CPUs)
+    CPUs = int(8 / len(checkpoints))
+    maxWorkers = int(numberOfCPUs() / CPUs)
     workers = Pool(maxWorkers)
-    eprint(f"You gave me {len(checkpoints)} checkpoints to ensemble. Each checkpoint will get {CPUs} CPUs. Creating a pool of {maxWorkers} worker processes.")
+    eprint(
+        f"You gave me {len(checkpoints)} checkpoints to ensemble. Each checkpoint will get {CPUs} CPUs. Creating a pool of {maxWorkers} worker processes.")
     timeout = 3600
-
 
     promises = []
     for t in tasks:
         for checkpoint in checkpoints:
             promise = workers.apply_async(competeOnOneTask,
-                                          (checkpoint,t),
+                                          (checkpoint, t),
                                           {"CPUs": CPUs,
                                            "timeout": timeout})
             promises.append(promise)
@@ -118,21 +121,20 @@ def sygusCompetition(checkpoints, tasks):
             searchTimes[task].append(dt)
 
     searchTimes = {t: min(ts) if len(ts) > 0 else None
-                   for t,ts in searchTimes.items()}
-    
-    fn = "experimentOutputs/text_competition_%s.p"%(datetime.datetime.now().isoformat())
-    with open(fn,"wb") as handle:
+                   for t, ts in searchTimes.items()}
+
+    fn = "experimentOutputs/text_competition_%s.p" % (datetime.datetime.now().isoformat())
+    with open(fn, "wb") as handle:
         pickle.dump(searchTimes, handle)
     eprint()
 
-    hits = sum( t is not None for t in searchTimes.values() )
+    hits = sum(t is not None for t in searchTimes.values())
     total = len(searchTimes)
-    percentage = 100*hits/total
-    eprint("Hits %d/%d = %f\n"%(hits, total, percentage))
+    percentage = 100 * hits / total
+    eprint("Hits %d/%d = %f\n" % (hits, total, percentage))
     eprint()
-    eprint("Exported competition results to",fn)
-    
-    
+    eprint("Exported competition results to", fn)
+
 
 def text_options(parser):
     parser.add_argument(
@@ -207,7 +209,6 @@ def main(arguments):
         test = []
         challenge = []
         eprint("Training only on sygus problems.")
-        
 
     ConstantInstantiateVisitor.SINGLE = \
         ConstantInstantiateVisitor(list(map(list, list({tuple([c for c in s])
@@ -235,18 +236,17 @@ def main(arguments):
         t.maxParameters = 2
 
     if arguments.pop("showTasks"):
-        for source, ts in [("train",tasks),("test",test),("challenge",challenge)]:
-            print(source,"tasks:")
+        for source, ts in [("train", tasks), ("test", test), ("challenge", challenge)]:
+            print(source, "tasks:")
             for t in ts:
                 print(t.name)
                 for xs, y in t.examples:
                     xs = ['"' + "".join(x) + '"' for x in xs]
-                    y = "".join(y) if isinstance(y,list) else y
+                    y = "".join(y) if isinstance(y, list) else y
                     print('f(%s) = "%s"' % (", ".join(xs), y))
                 print("\t{%s}" % (t.stringConstants))
             print()
         sys.exit(0)
-
 
     competitionCheckpoints = arguments.pop("compete")
     if competitionCheckpoints:
@@ -258,12 +258,12 @@ def main(arguments):
         sys.exit(0)
 
     timestamp = datetime.datetime.now().isoformat()
-    outputDirectory = "experimentOutputs/text/%s"%timestamp
-    os.system("mkdir -p %s"%outputDirectory)
+    outputDirectory = "experimentOutputs/text/%s" % timestamp
+    os.system("mkdir -p %s" % outputDirectory)
 
     generator = ecIterator(baseGrammar, train,
                            testingTasks=test + challenge,
-                           outputPrefix="%s/text"%outputDirectory,
+                           outputPrefix="%s/text" % outputDirectory,
                            evaluationTimeout=evaluationTimeout,
                            **arguments)
     for result in generator:

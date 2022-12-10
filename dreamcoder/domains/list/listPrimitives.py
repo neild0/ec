@@ -8,9 +8,12 @@ from functools import reduce
 
 def _flatten(l): return [x for xs in l for x in xs]
 
+
 def _range(n):
     if n < 100: return list(range(n))
     raise ValueError()
+
+
 def _if(c): return lambda t: lambda f: t if c else f
 
 
@@ -59,7 +62,7 @@ def _slice(x): return lambda y: lambda l: l[x:y]
 def _map(f): return lambda l: list(map(f, l))
 
 
-def _zip(a): return lambda b: lambda f: list(map(lambda x,y: f(x)(y), a, b))
+def _zip(a): return lambda b: lambda f: list(map(lambda x, y: f(x)(y), a, b))
 
 
 def _mapi(f): return lambda l: list(map(lambda i_x: f(i_x[0])(i_x[1]), enumerate(l)))
@@ -176,6 +179,7 @@ def _find(x):
             return l.index(x)
         except ValueError:
             return -1
+
     return _inner
 
 
@@ -207,6 +211,7 @@ def _fix(argument):
                     return fix(z)
 
             return body(r)(x)
+
         return fix(argument)
 
     return inner
@@ -285,7 +290,7 @@ def primitives():
         Primitive("is-square", arrow(tint, tbool), _isSquare),
 
         # these are achievable with above primitives, but unlikely
-        #Primitive("flatten", arrow(tlist(tlist(t0)), tlist(t0)), _flatten),
+        # Primitive("flatten", arrow(tlist(tlist(t0)), tlist(t0)), _flatten),
         # (lambda (reduce (lambda (lambda (++ $1 $0))) empty $0))
         Primitive("sum", arrow(tlist(tint), tint), sum),
         # (lambda (lambda (reduce (lambda (lambda (+ $0 $1))) 0 $0)))
@@ -299,7 +304,7 @@ def primitives():
         # (lambda (lambda (reducei (lambda (lambda (lambda (if (eq? $1 $4) $0 0)))) 0 $0)))
         Primitive("filter", arrow(arrow(t0, tbool), tlist(t0), tlist(t0)), _filter),
         # (lambda (lambda (reduce (lambda (lambda (++ $1 (if ($3 $0) (singleton $0) empty)))) empty $0)))
-        #Primitive("replace", arrow(arrow(tint, t0, tbool), tlist(t0), tlist(t0), tlist(t0)), _replace),
+        # Primitive("replace", arrow(arrow(tint, t0, tbool), tlist(t0), tlist(t0), tlist(t0)), _replace),
         # (FLATTEN (lambda (lambda (lambda (mapi (lambda (lambda (if ($4 $1 $0) $3 (singleton $1)))) $0)))))
         Primitive("slice", arrow(tint, tint, tlist(t0), tlist(t0)), _slice),
         # (lambda (lambda (lambda (reducei (lambda (lambda (lambda (++ $2 (if (and (or (gt? $1 $5) (eq? $1 $5)) (not (or (gt? $4 $1) (eq? $1 $4)))) (singleton $0) empty))))) empty $0))))
@@ -324,29 +329,31 @@ def basePrimitives():
         Primitive("-", arrow(tint, tint, tint), _subtraction)
     ]
 
+
 zip_primitive = Primitive("zip", arrow(tlist(t0), tlist(t1), arrow(t0, t1, t2), tlist(t2)), _zip)
+
 
 def bootstrapTarget():
     """These are the primitives that we hope to learn from the bootstrapping procedure"""
     return [
-        # learned primitives
-        Primitive("map", arrow(arrow(t0, t1), tlist(t0), tlist(t1)), _map),
-        Primitive("unfold", arrow(t0, arrow(t0,tbool), arrow(t0,t1), arrow(t0,t0), tlist(t1)), _unfold),
-        Primitive("range", arrow(tint, tlist(tint)), _range),
-        Primitive("index", arrow(tint, tlist(t0), t0), _index),
-        Primitive("fold", arrow(tlist(t0), t1, arrow(t0, t1, t1), t1), _fold),
-        Primitive("length", arrow(tlist(t0), tint), len),
+               # learned primitives
+               Primitive("map", arrow(arrow(t0, t1), tlist(t0), tlist(t1)), _map),
+               Primitive("unfold", arrow(t0, arrow(t0, tbool), arrow(t0, t1), arrow(t0, t0), tlist(t1)), _unfold),
+               Primitive("range", arrow(tint, tlist(tint)), _range),
+               Primitive("index", arrow(tint, tlist(t0), t0), _index),
+               Primitive("fold", arrow(tlist(t0), t1, arrow(t0, t1, t1), t1), _fold),
+               Primitive("length", arrow(tlist(t0), tint), len),
 
-        # built-ins
-        Primitive("if", arrow(tbool, t0, t0, t0), _if),
-        Primitive("+", arrow(tint, tint, tint), _addition),
-        Primitive("-", arrow(tint, tint, tint), _subtraction),
-        Primitive("empty", tlist(t0), []),
-        Primitive("cons", arrow(t0, tlist(t0), tlist(t0)), _cons),
-        Primitive("car", arrow(tlist(t0), t0), _car),
-        Primitive("cdr", arrow(tlist(t0), tlist(t0)), _cdr),
-        Primitive("empty?", arrow(tlist(t0), tbool), _isEmpty),
-    ] + [Primitive(str(j), tint, j) for j in range(2)]
+               # built-ins
+               Primitive("if", arrow(tbool, t0, t0, t0), _if),
+               Primitive("+", arrow(tint, tint, tint), _addition),
+               Primitive("-", arrow(tint, tint, tint), _subtraction),
+               Primitive("empty", tlist(t0), []),
+               Primitive("cons", arrow(t0, tlist(t0), tlist(t0)), _cons),
+               Primitive("car", arrow(tlist(t0), t0), _car),
+               Primitive("cdr", arrow(tlist(t0), tlist(t0)), _cdr),
+               Primitive("empty?", arrow(tlist(t0), tbool), _isEmpty),
+           ] + [Primitive(str(j), tint, j) for j in range(2)]
 
 
 def bootstrapTarget_extra():
@@ -359,6 +366,7 @@ def bootstrapTarget_extra():
         Primitive("is-prime", arrow(tint, tbool), _isPrime),
         Primitive("is-square", arrow(tint, tbool), _isSquare),
     ]
+
 
 def no_length():
     """this is the primitives without length because one of the reviewers wanted this"""
@@ -375,25 +383,25 @@ def no_length():
 def McCarthyPrimitives():
     "These are < primitives provided by 1959 lisp as introduced by McCarthy"
     return [
-        Primitive("empty", tlist(t0), []),
-        Primitive("cons", arrow(t0, tlist(t0), tlist(t0)), _cons),
-        Primitive("car", arrow(tlist(t0), t0), _car),
-        Primitive("cdr", arrow(tlist(t0), tlist(t0)), _cdr),
-        Primitive("empty?", arrow(tlist(t0), tbool), _isEmpty),
-        #Primitive("unfold", arrow(t0, arrow(t0,t1), arrow(t0,t0), arrow(t0,tbool), tlist(t1)), _isEmpty),
-        #Primitive("1+", arrow(tint,tint),None),
-        # Primitive("range", arrow(tint, tlist(tint)), range),
-        # Primitive("map", arrow(arrow(t0, t1), tlist(t0), tlist(t1)), _map),
-        # Primitive("index", arrow(tint,tlist(t0),t0),None),
-        # Primitive("length", arrow(tlist(t0),tint),None),
-        primitiveRecursion1,
-        #primitiveRecursion2,
-        Primitive("gt?", arrow(tint, tint, tbool), _gt),
-        Primitive("if", arrow(tbool, t0, t0, t0), _if),
-        Primitive("eq?", arrow(tint, tint, tbool), _eq),
-        Primitive("+", arrow(tint, tint, tint), _addition),
-        Primitive("-", arrow(tint, tint, tint), _subtraction),
-    ] + [Primitive(str(j), tint, j) for j in range(2)]
+               Primitive("empty", tlist(t0), []),
+               Primitive("cons", arrow(t0, tlist(t0), tlist(t0)), _cons),
+               Primitive("car", arrow(tlist(t0), t0), _car),
+               Primitive("cdr", arrow(tlist(t0), tlist(t0)), _cdr),
+               Primitive("empty?", arrow(tlist(t0), tbool), _isEmpty),
+               # Primitive("unfold", arrow(t0, arrow(t0,t1), arrow(t0,t0), arrow(t0,tbool), tlist(t1)), _isEmpty),
+               # Primitive("1+", arrow(tint,tint),None),
+               # Primitive("range", arrow(tint, tlist(tint)), range),
+               # Primitive("map", arrow(arrow(t0, t1), tlist(t0), tlist(t1)), _map),
+               # Primitive("index", arrow(tint,tlist(t0),t0),None),
+               # Primitive("length", arrow(tlist(t0),tint),None),
+               primitiveRecursion1,
+               # primitiveRecursion2,
+               Primitive("gt?", arrow(tint, tint, tbool), _gt),
+               Primitive("if", arrow(tbool, t0, t0, t0), _if),
+               Primitive("eq?", arrow(tint, tint, tbool), _eq),
+               Primitive("+", arrow(tint, tint, tint), _addition),
+               Primitive("-", arrow(tint, tint, tint), _subtraction),
+           ] + [Primitive(str(j), tint, j) for j in range(2)]
 
 
 if __name__ == "__main__":

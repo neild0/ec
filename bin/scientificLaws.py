@@ -96,7 +96,7 @@ def makeTask(name, request, law,
 
 
 def norm(v):
-    return sum(x * x for x in v)**0.5
+    return sum(x * x for x in v) ** 0.5
 
 
 def unit(v):
@@ -122,8 +122,9 @@ def crossProduct(a, b):
 def vectorAddition(u, v):
     return [a + b for a, b in zip(u, v)]
 
+
 def vectorSubtraction(u, v):
-    return [a - b for a, b in zip(u, v) ]
+    return [a - b for a, b in zip(u, v)]
 
 
 class LearnedFeatureExtractor(RecurrentFeatureExtractor):
@@ -132,9 +133,10 @@ class LearnedFeatureExtractor(RecurrentFeatureExtractor):
         def t(z):
             if isinstance(z, list):
                 return ["STARTLIST"] + \
-                    [y for x in z for y in t(x)] + ["ENDLIST"]
+                       [y for x in z for y in t(x)] + ["ENDLIST"]
             assert isinstance(z, (float, int))
             return ["REAL"]
+
         return [(tuple(map(t, xs)), t(y))
                 for xs, y in examples]
 
@@ -323,7 +325,7 @@ if __name__ == "__main__":
                  S=20),
         makeTask("Hook's law (2 vectors)",
                  arrow(treal, tvector, tvector, tpositive),
-                 lambda k, u, v: k * norm(vectorSubtraction(u,v)),
+                 lambda k, u, v: k * norm(vectorSubtraction(u, v)),
                  N=20,
                  S=20),
         makeTask("Ohm's law",
@@ -386,19 +388,19 @@ if __name__ == "__main__":
     ]
     bootstrapTarget()
     equationPrimitives = [
-#        real,
-        f0,
-        f1,
-        fpi,
-        real_power,
-        real_subtraction,
-        real_addition,
-        real_division,
-        real_multiplication] + [
-            Program.parse(n)
-            for n in ["map","fold",
-                      "empty","cons","car","cdr",
-                      "zip"]]
+                             #        real,
+                             f0,
+                             f1,
+                             fpi,
+                             real_power,
+                             real_subtraction,
+                             real_addition,
+                             real_division,
+                             real_multiplication] + [
+                             Program.parse(n)
+                             for n in ["map", "fold",
+                                       "empty", "cons", "car", "cdr",
+                                       "zip"]]
     baseGrammar = Grammar.uniform(equationPrimitives)
 
     eprint("Got %d equation discovery tasks..." % len(tasks))

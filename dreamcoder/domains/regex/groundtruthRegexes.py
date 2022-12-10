@@ -1,5 +1,4 @@
-
-#dict of gt regexes
+# dict of gt regexes
 
 """
  		pre.create(".+"),
@@ -138,7 +137,6 @@ gt_dict = {
     664: "N\\d",
     493: "[0\\.0\\d+]",
     765: "-?\\d\\.\\d+( \\(0\\.\\d+\\))?"
-
 
 }
 badRegexTasks = {

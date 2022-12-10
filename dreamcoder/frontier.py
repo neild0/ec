@@ -25,6 +25,7 @@ class FrontierEntry(object):
                              logPrior=self.logPrior,
                              logPosterior=self.logPosterior,
                              logLikelihood=self.logLikelihood)
+
     def unstrip_primitive_values(self):
         return FrontierEntry(program=unstrip_primitive_values(self.program),
                              logPrior=self.logPrior,
@@ -38,24 +39,28 @@ class Frontier(object):
         self.task = task
 
     def __repr__(
-        self): return "Frontier(entries={self.entries}, task={self.task})".format(self=self)
+            self):
+        return "Frontier(entries={self.entries}, task={self.task})".format(self=self)
 
-    def __iter__(self): return iter(self.entries)
+    def __iter__(self):
+        return iter(self.entries)
 
-    def __len__(self): return len(self.entries)
+    def __len__(self):
+        return len(self.entries)
 
     def json(self):
         return {"request": self.task.request.json(),
                 "task": str(self.task),
                 "programs": [{"program": str(e.program),
                               "logLikelihood": e.logLikelihood}
-                             for e in self ]}
+                             for e in self]}
 
     def strip_primitive_values(self):
-        return Frontier([e.strip_primitive_values() for e in self.entries ],
+        return Frontier([e.strip_primitive_values() for e in self.entries],
                         self.task)
+
     def unstrip_primitive_values(self):
-        return Frontier([e.unstrip_primitive_values() for e in self.entries ],
+        return Frontier([e.unstrip_primitive_values() for e in self.entries],
                         self.task)
 
     DUMMYFRONTIERCOUNTER = 0
@@ -82,14 +87,13 @@ class Frontier(object):
     def marginalLikelihood(self):
         return lse([e.logPrior + e.logLikelihood for e in self])
 
-    def temperature(self,T):
+    def temperature(self, T):
         """Divides prior by T"""
-        return Frontier([ FrontierEntry(program=e.program,
-                                        logPrior=e.logPrior/T,
-                                        logLikelihood=e.logLikelihood)
-                          for e in self],
+        return Frontier([FrontierEntry(program=e.program,
+                                       logPrior=e.logPrior / T,
+                                       logLikelihood=e.logLikelihood)
+                         for e in self],
                         task=self.task)
-                                        
 
     def normalize(self):
         z = self.marginalLikelihood()
@@ -99,8 +103,8 @@ class Frontier(object):
                 logPrior=e.logPrior,
                 logLikelihood=e.logLikelihood,
                 logPosterior=e.logPrior +
-                e.logLikelihood -
-                z) for e in self]
+                             e.logLikelihood -
+                             z) for e in self]
         newEntries.sort(key=lambda e: e.logPosterior, reverse=True)
         return Frontier(newEntries,
                         self.task)
@@ -112,15 +116,14 @@ class Frontier(object):
         this = g.rescoreFrontier(self).normalize()
         ps = list(sorted(g.primitives, key=str))
         features = np.zeros(len(ps))
-        
+
         for j, p in enumerate(ps):
             for e in this:
                 w = math.exp(e.logPosterior)
                 features[j] += w * sum(child == p
-                                       for _, child in e.program.walk() )
+                                       for _, child in e.program.walk())
             if not p.isInvented: features[j] *= 0.3
         return features
-            
 
     def removeZeroLikelihood(self):
         self.entries = [
@@ -129,7 +132,7 @@ class Frontier(object):
 
     def topK(self, k):
         if k == 0: return Frontier([], self.task)
-        if k < 0: return self            
+        if k < 0: return self
         newEntries = sorted(self.entries,
                             key=lambda e: (-e.logPosterior, str(e.program)))
         return Frontier(newEntries[:k], self.task)
@@ -156,9 +159,9 @@ class Frontier(object):
                    key=lambda e: e.logLikelihood)
         return best.logLikelihood
 
-
     @property
-    def empty(self): return self.entries == []
+    def empty(self):
+        return self.entries == []
 
     @staticmethod
     def makeEmpty(task):
@@ -217,22 +220,25 @@ class Frontier(object):
                             "WARNING: Log likelihoods deferred for %s: %f & %f" %
                             (p, e1.logLikelihood, e2.logLikelihood))
                         if hasattr(self.task, 'BIC'):
-                            eprint("\t%d examples, BIC=%f, parameterPenalty=%f, n parameters=%d, correct likelihood=%f" %
-                                   (len(self.task.examples),
-                                    self.task.BIC,
-                                    self.task.BIC * math.log(len(self.task.examples)),
-                                    substringOccurrences("REAL", str(p)),
-                                    substringOccurrences("REAL", str(p)) * self.task.BIC * math.log(len(self.task.examples))))
+                            eprint(
+                                "\t%d examples, BIC=%f, parameterPenalty=%f, n parameters=%d, correct likelihood=%f" %
+                                (len(self.task.examples),
+                                 self.task.BIC,
+                                 self.task.BIC * math.log(len(self.task.examples)),
+                                 substringOccurrences("REAL", str(p)),
+                                 substringOccurrences("REAL", str(p)) * self.task.BIC * math.log(
+                                     len(self.task.examples))))
                             e1.logLikelihood = - \
-                                substringOccurrences("REAL", str(p)) * self.task.BIC * math.log(len(self.task.examples))
+                                                   substringOccurrences("REAL", str(p)) * self.task.BIC * math.log(
+                                len(self.task.examples))
                             e2.logLikelihood = e1.logLikelihood
 
                         e1 = FrontierEntry(
                             program=e1.program,
                             logLikelihood=(
-                                e1.logLikelihood +
-                                e2.logLikelihood) /
-                            2,
+                                                  e1.logLikelihood +
+                                                  e2.logLikelihood) /
+                                          2,
                             logPrior=e1.logPrior)
             else:
                 e1 = y[p]
@@ -252,4 +258,3 @@ class Frontier(object):
         for fp in fs[1:]:
             f = f.combine(fp)
         return f
-    

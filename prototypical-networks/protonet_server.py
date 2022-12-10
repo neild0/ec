@@ -4,11 +4,11 @@ import sys
 import os
 
 from protonet_score import PretrainedProtonetDistScore, \
-                           load_image_path, load_image
+    load_image_path, load_image
 
 cache = {}
 model = PretrainedProtonetDistScore(os.path.dirname(os.path.realpath(__file__))
-        + "/results-OM/best_model.pt")
+                                    + "/results-OM/best_model.pt")
 
 
 def eprint(*args, **kwargs):

@@ -20,7 +20,7 @@ def load_image(array):
 
 
 def load_image_path(path):
-    _, _, _, a = Image.open("data/geometry/data/"+path+"/output_l.png").split()
+    _, _, _, a = Image.open("data/geometry/data/" + path + "/output_l.png").split()
     resized_a = a.resize((size, size), resample=Image.BILINEAR)
     np_array = np.array(resized_a, np.float32, copy=False)
     torch_image = torch.from_numpy(np.array(np_array, np.float32, copy=False))
@@ -48,8 +48,6 @@ class PretrainedProtonetDistScore(nn.Module):
         results = self.model.myloss(d)
 
         return results[1]
-
-
 
 
 if __name__ == '__main__':

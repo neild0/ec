@@ -3,6 +3,7 @@ from tqdm import tqdm
 from protonets.utils import filter_opt
 from protonets.models import get_model
 
+
 def load(opt):
     model_opt = filter_opt(opt, 'model')
     model_name = model_opt['model_name']
@@ -11,10 +12,11 @@ def load(opt):
 
     return get_model(model_name, model_opt)
 
+
 def evaluate(model, data_loader, meters, desc=None):
     model.eval()
 
-    for field,meter in meters.items():
+    for field, meter in meters.items():
         meter.reset()
 
     if desc is not None:

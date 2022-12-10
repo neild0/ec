@@ -1,5 +1,3 @@
-
-
 from dreamcoder.type import *
 from dreamcoder.task import Task
 from dreamcoder.utilities import eprint, hashable
@@ -54,6 +52,7 @@ EASYLISTTASKS = {
     "slice-k-n with k=2 and n=1",
     "slice-k-n with k=3 and n=1",
 }
+
 
 def make_list_task(name, examples, **params):
     input_type = guess_type([i for (i,), _ in examples])
@@ -132,7 +131,8 @@ def make_list_bootstrap_tasks():
         else:
             return [l[1:]] + suffixes(l[1:])
 
-    def flip(): return random() > 0.5
+    def flip():
+        return random() > 0.5
 
     def randomSuffix():
         return [randint(0, 9) for _ in range(randint(1, 4))]
@@ -165,7 +165,7 @@ def make_list_bootstrap_tasks():
         Task("map length", arrow(tlist(tlist(tint)), tlist(tint)),
              [((xss,), [len(xs) for xs in xss])
               for _ in range(10)
-              for xss in [randomListOfLists()] ])
+              for xss in [randomListOfLists()]])
     ]
 
     # Encourages learning of unfolding
@@ -174,12 +174,12 @@ def make_list_bootstrap_tasks():
              [((n,), list(range(n + 1, 1, -1)))
               for n in range(10)]),
         Task("weird count", arrow(tint, tlist(tint)),
-             [((n,), list(range(-n,0,-1)))
-              for n in range(-10,0) ]),
-        Task("take every other", arrow(tlist(tint),tlist(tint)),
-             [((l,), [x for j,x in enumerate(l) if j%2 == 0])
+             [((n,), list(range(-n, 0, -1)))
+              for n in range(-10, 0)]),
+        Task("take every other", arrow(tlist(tint), tlist(tint)),
+             [((l,), [x for j, x in enumerate(l) if j % 2 == 0])
               for _ in range(9)
-              for l in [ [randint(0, 9) for _ in range(randint(1,4)*2)] ] ] + [(([],),[])]),
+              for l in [[randint(0, 9) for _ in range(randint(1, 4) * 2)]]] + [(([],), [])]),
         # Task("stutter every other", arrow(tlist(tint),tlist(tint)),
         #      [((l,), [l[int(j/2)] for j in range(len(l)) ])
         #       for _ in range(10)
@@ -189,10 +189,10 @@ def make_list_bootstrap_tasks():
         #       for _ in range(10)
         #       for p in [ [z for z in randomList()[:5] if z != 3 ]]
         #       for s in [randomList()] ]),
-        Task("drop last element", arrow(tlist(tint),tlist(tint)),
+        Task("drop last element", arrow(tlist(tint), tlist(tint)),
              [((l,), l[:-1])
               for _ in range(10)
-              for l in [ [randint(0, 9) for _ in range(randint(2,5))] ] ]),
+              for l in [[randint(0, 9) for _ in range(randint(2, 5))]]]),
         # Task("suffixes", arrow(tlist(tint), tlist(tlist(tint))),
         #      [((l,), suffixes(l))
         #       for _ in range(10)
@@ -227,9 +227,9 @@ def make_list_bootstrap_tasks():
         #       for l in [[randint(0, 9) for _ in range(randint(n + 1, n + 5))]]]),
         Task("1-index int", arrow(tint, tlist(tint), tint),
              [((n, l), l[n - 1])
-              for n in range(1,11)
+              for n in range(1, 11)
               for l in [[randint(0, 9) for _ in range(randint(n + 1, n + 4))]]])
-        
+
         # Task("index bool", arrow(tint, tlist(tbool), tbool),
         #      [((n, l), l[n])
         #       for n in range(10)
@@ -260,10 +260,10 @@ def make_list_bootstrap_tasks():
 
     # learning to fold
     foldBootstrap = [
-        Task("stutter", arrow(tlist(tint),tlist(tint)),
-             [((l,), [z for x in l for z in [x,x] ])
+        Task("stutter", arrow(tlist(tint), tlist(tint)),
+             [((l,), [z for x in l for z in [x, x]])
               for _ in range(10)
-              for l in [randomList()] ]),
+              for l in [randomList()]]),
         Task("sum", arrow(tlist(tint), tint),
              [((l,), sum(l))
               for _ in range(10)
@@ -276,10 +276,10 @@ def make_list_bootstrap_tasks():
         #      [((x, y), x + y)
         #       for _ in range(10)
         #       for [x, y] in [[randomBooleanList(), randomBooleanList()]]]),
-        Task("append constant 0", arrow(tlist(tint),tlist(tint)),
-             [((l,),l + [0])
+        Task("append constant 0", arrow(tlist(tint), tlist(tint)),
+             [((l,), l + [0])
               for _ in range(10)
-              for l in [randomList()] ]),
+              for l in [randomList()]]),
     ]
 
     # learning to map
@@ -288,14 +288,14 @@ def make_list_bootstrap_tasks():
              [((l,), list(map(lambda n: n * 2, l)))
               for _ in range(10)
               for l in [randomList()]]),
-        Task("map increment", arrow(tlist(tint),tlist(tint)),
-             [((l,),list(map(lambda n: n+1, l)))
+        Task("map increment", arrow(tlist(tint), tlist(tint)),
+             [((l,), list(map(lambda n: n + 1, l)))
               for _ in range(10)
-              for l in [randomList()] ]),
-        Task("map negation", arrow(tlist(tint),tlist(tint)),
-             [((l,),list(map(lambda n: 0-n, l)))
+              for l in [randomList()]]),
+        Task("map negation", arrow(tlist(tint), tlist(tint)),
+             [((l,), list(map(lambda n: 0 - n, l)))
               for _ in range(10)
-              for l in [randomList()] ]),
+              for l in [randomList()]]),
         # Task("map car", arrow(tlist(tlist(tint)), tlist(tint)),
         #      [((l,), [n[0] for n in l])
         #       for _ in4 range(10)
@@ -316,29 +316,29 @@ def make_list_bootstrap_tasks():
 
     ]
     difficultMaps = [
-                Task("map quadruple", arrow(tlist(tint), tlist(tint)),
+        Task("map quadruple", arrow(tlist(tint), tlist(tint)),
              [((l,), list(map(lambda n: n * 4, l)))
               for _ in range(10)
               for l in [randomList()]]),
-        Task("map add 3", arrow(tlist(tint),tlist(tint)),
-             [((l,),list(map(lambda n: n+3, l)))
+        Task("map add 3", arrow(tlist(tint), tlist(tint)),
+             [((l,), list(map(lambda n: n + 3, l)))
               for _ in range(10)
-              for l in [randomList()] ]),
+              for l in [randomList()]]),
 
-        ]
+    ]
 
     # Learning to zip lists together
     zipBootstrap = [
-        Task("zip plus", arrow(tlist(tint),tlist(tint),tlist(tint)),
-             [((l1,l2),list(map(lambda x,y: x+y,l1,l2)))
+        Task("zip plus", arrow(tlist(tint), tlist(tint), tlist(tint)),
+             [((l1, l2), list(map(lambda x, y: x + y, l1, l2)))
               for _ in range(10)
               for l1 in [randomList(minimumLength=2, maximumLength=4)]
-              for l2 in [[ randint(0,9) for _ in range(len(l1)) ]]]),
-        Task("zip minus", arrow(tlist(tint),tlist(tint),tlist(tint)),
-             [((l1,l2),list(map(lambda x,y: x-y,l1,l2)))
+              for l2 in [[randint(0, 9) for _ in range(len(l1))]]]),
+        Task("zip minus", arrow(tlist(tint), tlist(tint), tlist(tint)),
+             [((l1, l2), list(map(lambda x, y: x - y, l1, l2)))
               for _ in range(10)
               for l1 in [randomList(minimumLength=2, maximumLength=4)]
-              for l2 in [[ randint(0,9) for _ in range(len(l1)) ]]]),
+              for l2 in [[randint(0, 9) for _ in range(len(l1))]]]),
         # Task("zip eq?", arrow(tlist(tint), tlist(tint), tlist(tbool)),
         #      [((l1, l2), list(map(lambda x, y: x == y, l1, l2)))
         #       for _ in range(10)
@@ -382,7 +382,7 @@ def make_list_bootstrap_tasks():
     ]
 
     return lengthBootstrap + filterBootstrap + \
-        unfoldBootstrap + arrayBootstrap + foldBootstrap + mapBootstrap + zipBootstrap
+           unfoldBootstrap + arrayBootstrap + foldBootstrap + mapBootstrap + zipBootstrap
 
 
 def bonusListProblems():
@@ -416,22 +416,27 @@ def bonusListProblems():
     ]
     return bonus
 
+
 def sortBootstrap():
     # These tasks have as their goal the learning of (1) filter, and
     # (2) sort, which uses filter.
-    def flip(): return random() > 0.5
+    def flip():
+        return random() > 0.5
+
     def randomList(lb=None, ub=None):
         if lb is None:
             lb = 2
         if ub is None:
             ub = 5
         return [randint(0, 10) for _ in range(randint(lb, ub))]
+
     def randomBooleanList():
         return [flip() for _ in range(randint(4, 7))]
+
     def removeDuplicates(l):
         if len(l) == 0: return l
-        return [l[0]] + removeDuplicates([ z for z in l if z != l[0] ])
-    
+        return [l[0]] + removeDuplicates([z for z in l if z != l[0]])
+
     filterBootstrap = [
         # Task("remove empty lists",
         #      arrow(tlist(tlist(tbool)), tlist(tlist(tbool))),
@@ -456,7 +461,7 @@ def sortBootstrap():
         #       for xs in [[randint(0, 20) for _ in range(7)]]]),
         Task("remove squares",
              arrow(tlist(tint), tlist(tint)),
-             [((xs,), [x for x in xs if not (int(x**0.5)**2 == x)])
+             [((xs,), [x for x in xs if not (int(x ** 0.5) ** 2 == x)])
               for _ in range(10)
               for xs in [[randint(0, 20) for _ in range(7)]]]),
         Task("remove > 1",
@@ -468,14 +473,14 @@ def sortBootstrap():
 
     # Needed for selection sort
     minimumBootstrap = [
-        Task("min2", arrow(tint,tint,tint),
-             [((x,y),min(x,y))
+        Task("min2", arrow(tint, tint, tint),
+             [((x, y), min(x, y))
               for x in range(4)
-              for y in range(4) ]),
-        Task("minimum of list", arrow(tlist(tint),tint),
-             [((l,),min(l))
-              for _ in range(15) 
-              for l in [randomList()] ])
+              for y in range(4)]),
+        Task("minimum of list", arrow(tlist(tint), tint),
+             [((l,), min(l))
+              for _ in range(15)
+              for l in [randomList()]])
     ]
 
     appendBootstrap = [
@@ -490,53 +495,51 @@ def sortBootstrap():
     ]
 
     insertionBootstrap = [
-        Task("filter greater than or equal", arrow(tint,tlist(tint),tlist(tint)),
-             [((x,l), [y for y in l if y >= x ])
-              for _ in range(15) 
-              for x in [randint(0,5)]
-              for l in [randomList()] ]),
-        Task("filter less than", arrow(tint,tlist(tint),tlist(tint)),
-             [((x,l), [y for y in l if y < x ])
-              for _ in range(15) 
-              for x in [randint(0,5)]
-              for l in [randomList()] ]),
-        Task("insert into sorted list (I)", arrow(tint,tlist(tint),tlist(tint)),
-             [((x,l), [y for y in l if y < x ] + [x] + [y for y in l if y >= x ])
-              for _ in range(15) 
-              for x in [randint(0,5)]
+        Task("filter greater than or equal", arrow(tint, tlist(tint), tlist(tint)),
+             [((x, l), [y for y in l if y >= x])
+              for _ in range(15)
+              for x in [randint(0, 5)]
+              for l in [randomList()]]),
+        Task("filter less than", arrow(tint, tlist(tint), tlist(tint)),
+             [((x, l), [y for y in l if y < x])
+              for _ in range(15)
+              for x in [randint(0, 5)]
+              for l in [randomList()]]),
+        Task("insert into sorted list (I)", arrow(tint, tlist(tint), tlist(tint)),
+             [((x, l), [y for y in l if y < x] + [x] + [y for y in l if y >= x])
+              for _ in range(15)
+              for x in [randint(0, 5)]
               for _l in [randomList()]
-              for l in [sorted(_l)] ]),
-        Task("insert into sorted list (II)", arrow(tint,tlist(tint),tlist(tint)),
-             [((x,l), [y for y in l if y < x ] + [x] + [y for y in l if y >= x ])
-              for _ in range(15) 
-              for x in [randint(0,5)]
-              for l in [randomList()] ])
+              for l in [sorted(_l)]]),
+        Task("insert into sorted list (II)", arrow(tint, tlist(tint), tlist(tint)),
+             [((x, l), [y for y in l if y < x] + [x] + [y for y in l if y >= x])
+              for _ in range(15)
+              for x in [randint(0, 5)]
+              for l in [randomList()]])
     ]
 
-
     sortTask = [
-        Task("sort-and-deduplicate", arrow(tlist(tint),tlist(tint)),
-             [((l,),list(sorted(l)))
+        Task("sort-and-deduplicate", arrow(tlist(tint), tlist(tint)),
+             [((l,), list(sorted(l)))
               for _ in range(15)
               for l in [removeDuplicates(randomList())]
-             ])]
+              ])]
 
     slowSort = [
         Task("+1 maximum list", arrow(tlist(tint), tint),
-             [((l,),max(l) + 1)
+             [((l,), max(l) + 1)
               for _ in range(15)
-              for l in [randomList()] ]),
+              for l in [randomList()]]),
         Task("range +1 maximum list", arrow(tlist(tint), tlist(tint)),
-             [((l,),list(range(max(l) + 1)))
+             [((l,), list(range(max(l) + 1)))
               for _ in range(15)
-              for l in [randomList()] ]),
-        ]
-        
+              for l in [randomList()]]),
+    ]
 
     tasks = sortTask + slowSort
     for t in tasks: t.mustTrain = True
     return tasks
-    
+
 
 def exportTasks():
     import sys
@@ -557,6 +560,8 @@ def exportTasks():
 
 if __name__ == "__main__":
     import json
+
+
     def retrieveJSONTasks(filename, features=False):
         """
         For JSON of the form:
@@ -581,6 +586,8 @@ if __name__ == "__main__":
                 [((ex["i"],), ex["o"]) for ex in item["examples"]])),
             cache=False,
         ) for item in loaded]
+
+
     for t in retrieveJSONTasks("data/list_tasks.json") + sortBootstrap() + make_list_bootstrap_tasks():
         print(t.describe())
         print()

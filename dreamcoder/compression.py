@@ -24,14 +24,13 @@ def induceGrammar(*args, **kwargs):
         # but the primitive values are irrelevant for compression
         # therefore strip them out and then replace them once we are done
         # ditto for task data
-        g0,frontiers = args[0].strip_primitive_values(), \
-                       [front.strip_primitive_values() for front in args[1]]
+        g0, frontiers = args[0].strip_primitive_values(), \
+                        [front.strip_primitive_values() for front in args[1]]
         original_tasks = {f.task.name: f.task for f in frontiers}
-        frontiers = [Frontier(f.entries, Task(f.task.name,f.task.request,[]))
-                     for f in frontiers ]
-        args = [g0,frontiers]
+        frontiers = [Frontier(f.entries, Task(f.task.name, f.task.request, []))
+                     for f in frontiers]
+        args = [g0, frontiers]
 
-    
     with timing("Induced a grammar"):
         if backend == "pypy":
             g, newFrontiers = callCompiled(pypyInduce, *args, **kwargs)
@@ -62,36 +61,34 @@ def induceGrammar(*args, **kwargs):
         g, newFrontiers = g.unstrip_primitive_values(), \
                           [front.unstrip_primitive_values() for front in newFrontiers]
         newFrontiers = [Frontier(f.entries, original_tasks[f.task.name])
-                        for f in newFrontiers] 
-        
+                        for f in newFrontiers]
 
     return g, newFrontiers
 
+
 def memorizeInduce(g, frontiers, **kwargs):
     existingInventions = {p.uncurry()
-                          for p in g.primitives }
+                          for p in g.primitives}
     programs = {f.bestPosterior.program for f in frontiers if not f.empty}
     newInventions = programs - existingInventions
     newGrammar = Grammar.uniform([p for p in g.primitives] + \
                                  [Invented(ni) for ni in newInventions])
-    
+
     # rewrite in terms of new primitives
     def substitute(p):
         nonlocal newInventions
         if p in newInventions: return Invented(p).uncurry()
         return p
+
     newFrontiers = [Frontier([FrontierEntry(program=np,
                                             logPrior=newGrammar.logLikelihood(f.task.request, np),
                                             logLikelihood=e.logLikelihood)
-                           for e in f
-                           for np in [substitute(e.program)] ],
+                              for e in f
+                              for np in [substitute(e.program)]],
                              task=f.task)
-                 for f in frontiers ]
+                    for f in frontiers]
     return newGrammar, newFrontiers
-    
-    
-        
-    
+
 
 def pypyInduce(*args, **kwargs):
     kwargs.pop('iteration')
@@ -102,7 +99,6 @@ def ocamlInduce(g, frontiers, _=None,
                 topK=1, pseudoCounts=1.0, aic=1.0,
                 structurePenalty=0.001, a=0, CPUs=1,
                 bs=1000000, topI=300, factored=False):
-    
     # This is a dirty hack!
     # Memory consumption increases with the number of CPUs
     # And early on we have a lot of stuff to compress
@@ -135,7 +131,7 @@ def ocamlInduce(g, frontiers, _=None,
                    "structurePenalty": float(structurePenalty),
                    "CPUs": CPUs,
                    "DSL": g.json(),
-                   "factored_apply": factored, 
+                   "factored_apply": factored,
                    "iterations": iterations,
                    "frontiers": [f.json()
                                  for f in frontiers]}

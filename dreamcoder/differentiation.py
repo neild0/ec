@@ -34,7 +34,8 @@ class DN(object):
             self.name, self.data, self.gradient, len(self.descendents), self.arguments)
 
     @property
-    def derivative(self): return self.differentiate()
+    def derivative(self):
+        return self.differentiate()
 
     def differentiate(self):
         if self.gradient is None:
@@ -69,7 +70,7 @@ class DN(object):
             #     self.zeroEverything()
             #     eprint("Here I am after being zeroed",repr(self))
             #     raise Exception('invalid loss')
-            #assert valid(self.data)
+            # assert valid(self.data)
             partials = self.backward(*inputs)
             for d, a in zip(partials, self.arguments):
                 # if invalid(d):
@@ -95,33 +96,47 @@ class DN(object):
         self.backPropagation()
         return l
 
-    def log(self): return Logarithm(self)
+    def log(self):
+        return Logarithm(self)
 
-    def square(self): return Square(self)
+    def square(self):
+        return Square(self)
 
-    def exp(self): return Exponentiation(self)
+    def exp(self):
+        return Exponentiation(self)
 
-    def clamp(self, l, u): return Clamp(self, l, u)
+    def clamp(self, l, u):
+        return Clamp(self, l, u)
 
-    def __abs__(self): return AbsoluteValue(self)
+    def __abs__(self):
+        return AbsoluteValue(self)
 
-    def __add__(self, o): return Addition(self, Placeholder.maybe(o))
+    def __add__(self, o):
+        return Addition(self, Placeholder.maybe(o))
 
-    def __radd__(self, o): return Addition(self, Placeholder.maybe(o))
+    def __radd__(self, o):
+        return Addition(self, Placeholder.maybe(o))
 
-    def __sub__(self, o): return Subtraction(self, Placeholder.maybe(o))
+    def __sub__(self, o):
+        return Subtraction(self, Placeholder.maybe(o))
 
-    def __rsub__(self, o): return Subtraction(Placeholder.maybe(o), self)
+    def __rsub__(self, o):
+        return Subtraction(Placeholder.maybe(o), self)
 
-    def __mul__(self, o): return Multiplication(self, Placeholder.maybe(o))
+    def __mul__(self, o):
+        return Multiplication(self, Placeholder.maybe(o))
 
-    def __rmul__(self, o): return Multiplication(self, Placeholder.maybe(o))
+    def __rmul__(self, o):
+        return Multiplication(self, Placeholder.maybe(o))
 
-    def __neg__(self): return Negation(self)
+    def __neg__(self):
+        return Negation(self)
 
-    def __truediv__(self, o): return Division(self, Placeholder.maybe(o))
+    def __truediv__(self, o):
+        return Division(self, Placeholder.maybe(o))
 
-    def __rtruediv__(self, o): return Division(Placeholder.maybe(o), self)
+    def __rtruediv__(self, o):
+        return Division(Placeholder.maybe(o), self)
 
     def numericallyVerifyGradients(self, parameters):
         calculatedGradients = [p.derivative for p in parameters]
@@ -143,7 +158,7 @@ class DN(object):
             parameters,
             _=None,
             lr=0.001,
-            steps=10**3,
+            steps=10 ** 3,
             update=None):
         for j in range(steps):
             l = self.updateNetwork()
@@ -160,11 +175,11 @@ class DN(object):
 
     def restartingOptimize(self, parameters, _=None, attempts=1,
                            s=1., decay=0.5, grow=0.1,
-                           lr=0.1, steps=10**3, update=None):
+                           lr=0.1, steps=10 ** 3, update=None):
         ls = []
         for _ in range(attempts):
             for p in parameters:
-                p.data = random.random()*10 - 5
+                p.data = random.random() * 10 - 5
             ls.append(
                 self.resilientBackPropagation(
                     parameters, lr=lr, steps=steps,
@@ -178,7 +193,7 @@ class DN(object):
             decay=0.5,
             grow=1.2,
             lr=0.1,
-            steps=10**3,
+            steps=10 ** 3,
             update=None):
         previousSign = [None] * len(parameters)
         lr = [lr] * len(parameters)
@@ -233,9 +248,11 @@ class Placeholder(DN):
             return x
         return Placeholder(float(x))
 
-    def forward(self): return self.data
+    def forward(self):
+        return self.data
 
-    def backward(self): return []
+    def backward(self):
+        return []
 
 
 class Clamp(DN):

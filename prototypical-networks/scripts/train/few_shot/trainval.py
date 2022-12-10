@@ -5,6 +5,7 @@ import subprocess
 from protonets.utils import format_opts, merge_dict
 from protonets.utils.log import load_trace
 
+
 def main(opt):
     result_dir = os.path.dirname(opt['model.model_path'])
 
@@ -25,4 +26,5 @@ def main(opt):
         'train.epochs': best_epoch + model_opt['train.patience'],
     })
 
-    subprocess.call(['python', os.path.join(os.getcwd(), 'scripts/train/few_shot/run_train.py')] + format_opts(model_opt))
+    subprocess.call(
+        ['python', os.path.join(os.getcwd(), 'scripts/train/few_shot/run_train.py')] + format_opts(model_opt))
