@@ -1,0 +1,9 @@
+[submodule "pinn"]
+	path = pinn
+	url = https://github.com/insperatum/pinn.git
+[submodule "pregex"]
+	path = pregex
+	url = https://github.com/insperatum/pregex.git
+[submodule "pyccg"]
+	path = pyccg
+	url = https://github.com/hans/pyccg.git
