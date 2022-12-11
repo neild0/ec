@@ -2,8 +2,8 @@ import pybiopax
 
 class BioChemReaction:
     def __init__(self, reaction):
-        self.reactants = [Molecule(x.standard_name) if type(x) != str else Molecule(x) for x in reaction.controlled.left]
-        self.products = [Molecule(x.standard_name) if type(x) != str else Molecule(x) for x in reaction.controlled.right]
+        self.reactants = (Molecule(x.standard_name) if type(x) != str else Molecule(x) for x in reaction.controlled.left)
+        self.products = (Molecule(x.standard_name) if type(x) != str else Molecule(x) for x in reaction.controlled.right)
         self.protein = reaction.standard_name
         self.reversible = False
     def __str__(self):
@@ -38,22 +38,28 @@ class BioChemReactionSet:
 class Protein:
     def __init__(self, name, reactions=None):
         self.name = name
-        self.reactions = reactions
-        self.reactants = [x.reactants for x in reactions] if reactions else []
-        self.products = [x.products for x in reactions] if reactions else []
+        self.reactions = reactions if reactions else {}
+        self.reactants = {x.reactants for x in reactions} if reactions else {}
+        self.products = {x.products for x in reactions} if reactions else {}
 
     def add_reaction(self, reaction):
-        self.reactions.append(reaction)
-        self.reactants.append(reaction.reactants)
-        self.products.append(reaction.products)
+        self.reactions.add(reaction)
+        self.reactants.add(reaction.reactants)
+        self.products.add(reaction.products)
+
+    def __hash__(self):
+        return hash(self.name)
+
+    def __eq__(self, other):
+        return self.name == other.name
 
 
 class ProteinSet:
     def __init__(self, proteins = None):
-        self.proteins = proteins if proteins else []
+        self.proteins = proteins if proteins else {}
 
     def add_protein(self, protein):
-        self.proteins.append(protein)
+        self.proteins.add(protein)
 
     def add_reaction(self, reaction):
         for protein in self.proteins:
