@@ -34,3 +34,31 @@ class Molecule:
 class BioChemReactionSet:
     def __init__(self, reactions):
         self.reactions = reactions
+
+class Protein:
+    def __init__(self, name, reactions=None):
+        self.name = name
+        self.reactions = reactions
+        self.reactants = [x.reactants for x in reactions] if reactions else []
+        self.products = [x.products for x in reactions] if reactions else []
+
+    def add_reaction(self, reaction):
+        self.reactions.append(reaction)
+        self.reactants.append(reaction.reactants)
+        self.products.append(reaction.products)
+
+
+class ProteinSet:
+    def __init__(self, proteins = None):
+        self.proteins = proteins if proteins else []
+
+    def add_protein(self, protein):
+        self.proteins.append(protein)
+
+    def add_reaction(self, reaction):
+        for protein in self.proteins:
+            if protein.name == reaction.protein:
+                protein.add_reaction(reaction)
+                break
+        else:
+            self.add_protein(Protein(reaction.protein, [reaction]))
